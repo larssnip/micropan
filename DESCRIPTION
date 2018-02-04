@@ -16,4 +16,4 @@ Imports:
 LinkingTo: Rcpp (>= 0.11.1), BH
 LazyData: FALSE
 ZipData: TRUE
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1
