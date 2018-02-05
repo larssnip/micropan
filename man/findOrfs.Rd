@@ -13,35 +13,15 @@ findOrfs(genome, circular = F)
 }
 \value{
 This function returns a \code{gff.table}, which is simply a \code{data.frame} with columns
-adhering, more or less, to the format specified by the GFF3 format, see
-https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md for details. There is
-one row for each ORF.
-
-The following columns are in the \code{gff.table} returned by \code{findOrfs}:
-\itemize{
-  \item \code{Seqid}. This is the first token in the \code{genome$Header} texts, i.e. an identifier for
-  the genome sequence/scaffold/contig where the ORF is found. Note that this implies the first token
-  in all \code{genome$Header} texts must be unique!
-  \item \code{Type} All features are of type \code{"ORF"}.
-  \item \code{Start}. The leftmost coordinate. This is the start if the ORF is on the Sense strand, but
-  the stop if it is on the Antisense strand.
-  \item \code{Stop}. The rightmost coordinate. This is the stop if the ORF is on the Sense strand, but
-  the start if it is on the Antisense strand.
-  \item \code{Strand}. A \code{"+"} indicates Sense strand, a \code{"-"} Antisense.
-  \item \code{Attributes}. A text indicating if the ORF is truncated. If \code{"truncated=00"} the ORF
-  is complete. If \code{"truncated=10"} it is 
-}
-These are columns 1,3,4,5,7 and 9 of the GFF3 format. Columns 2 (source), 6 (score) and 8 (phase) are not 
-included, since they will not contain informative data from this function.
+adhering to the format specified by the GFF3 format, see \code{\link{readGFF}}
 }
 \description{
 Finds all ORFs in prokaryotic genome sequences.
 }
 \details{
-An Open Reading Frame (ORF) is defined as a subsequence starting with a  start-codon
-(ATG, GTG or TTG), followed by an integer number of triplets, and ending with a stop-codon (TAA,
-TGA or TAG). This function will locate all ORFs in a genome, and returns a \code{gff.table}, which is
-explained below.
+A prokaryotic Open Reading Frame (ORF) is defined as a subsequence starting with a  start-codon
+(ATG, GTG or TTG), followed by an integer number of triplets (codons), and ending with a stop-codon (TAA,
+TGA or TAG). This function will locate all ORFs in a genome.
 
 The argument \code{genome} will typically have several sequences (chromosomes/plasmids/scaffolds/contigs).
 It is vital that the \emph{first token} (characters before first space) of every \code{genome$Header} is
@@ -49,15 +29,20 @@ unique, since this will be used to identify these genome sequences in the output
 
 Note that for any given stop-codon there are usually multiple start-codons in the same reading
 frame. This function will return all, i.e. the same stop position may appear multiple times. If
-you want ORFs with the most upstream start-codon only (LORFs), see \code{\link{lorfs}}.
+you want ORFs with the most upstream start-codon only (LORFs), then filter the output from this function
+with \code{\link{lorfs}}.
 
 By default the genome sequences are assumed to be linear, i.e. contigs or other incomplete fragments
 of a genome. In such cases there will usually be some truncated ORFs at each end, i.e. ORFs where either
-the start- or the stop-codon is lacking. If the supplied \code{genome} is a completed genome, with 
+the start- or the stop-codon is lacking. In the \code{gff.table} returned by this function this is marked in the
+Attributes column. The texts "Truncated=10" or "Truncated=01" indicates truncated at 
+the Start or End, respectively.
+
+If the supplied \code{genome} is a completed genome, with 
 circular chromosome/plasmids, set the flag \code{circular=TRUE} and no truncated ORFs will be listed.
 In cases where an ORF runs across the origin of a circular genome sequences, the Stop coordinate will be
 larger than the length of the genome sequence. This is in line with the specifications of the GFF3 format, where 
-a Start cannot be larger than the corresponding Stop
+a Start cannot be larger than the corresponding End.
 }
 \examples{
 # Reading a small genome into R (uncompressing it first):

@@ -4,20 +4,20 @@
 #' @description Retrieving the sequences specified in a \code{gff.table}.
 #' 
 #' @param gff.table A \code{gff.table} (\code{data.frame}) with genomic features information.
-#' @param genome A \code{\link{Fasta}}-object with the genome sequence(s).
+#' @param genome A \code{\link{Fasta}} object with the genome sequence(s).
 #' 
-#' @details Each row in \code{gff.table} (see \code{\link{findOrfs}}) describes a genomic feature in the \code{genome}.
-#' This includes the \code{Seqid} indicating the genomic sequence, the coordinates \code{Start}
-#' and \code{Stop} as well as the \code{Strand}. Every \code{Seqid} in the \code{gff.table}
+#' @details Each row in \code{gff.table} (see \code{\link{readGFF}}) describes a genomic feature
+#' in the \code{genome}. The information in the columns Seqid, Start, End and Strand are used to retrieve
+#' the sequences from \code{genome$Sequence}. Every Seqid in the \code{gff.table}
 #' must match the first token in one of the \code{genome$Header} texts.
 #' 
 #' @return A \code{\link{Fasta}} object with one row for each row in \code{gff.table}. 
-#' The \code{Header} for each sequence is a summary of the \code{gff.table} information in the
+#' The \code{Header} for each sequence is a summary of the information in the
 #' corresponding row of \code{gff.table}.
 #' 
 #' @author Lars Snipen and Kristian Hovde Liland.
 #' 
-#' @seealso \code{\link{findOrfs}}, \code{\link{lorfs}}.
+#' @seealso \code{\link{readGFF}}, \code{\link{findOrfs}}.
 #' 
 #' @examples Mer her
 #' 
@@ -40,7 +40,7 @@ gff2fasta <- function( gff.table, genome ){
     idx <- which( gff.table$Seqid == tagz[i] )
     seq <- extractSeq( genome$Sequence[i], 
                        gff.table$Start[idx], 
-                       gff.table$Stop[idx], 
+                       gff.table$End[idx], 
                        gff.table$Strand[idx] )
     idd <- which( gff.table$Strand[idx] < 0 )
     seq[idd] <- reverseComplement( seq[idd] )
@@ -49,6 +49,8 @@ gff2fasta <- function( gff.table, genome ){
   class( fobj ) <- c( "Fasta", "data.frame" )
   return( fobj )
 }
+
+
 
 #' @name gffSignature
 #' @title GFF signature text
@@ -75,10 +77,13 @@ gff2fasta <- function( gff.table, genome ){
 #' 
 gffSignature <- function( gff.table ){
   desc <- paste( "Seqid=", gff.table$Seqid,
+                 ";Source=", gff.table$Source,
                  ";Type=", gff.table$Type,
                  ";Start=", gff.table$Start,
-                 ";Right=", gff.table$Stop,
+                 ";End=", gff.table$End,
+                 ";Score=", gff.table$Score,
                  ";Strand=", gff.table$Strand,
+                 ";Phase=", gff.table$Phase,
                  ";Attributes=", gff.table$Attributes,
                  sep="" )
   return( desc )
@@ -86,23 +91,43 @@ gffSignature <- function( gff.table ){
 
 
 
-#' @name readOrfTable
-#' @aliases readOrfTable writeOrfTable
-#' @title Reading and writing ORF tables
+#' @name readGFF
+#' @aliases readGFF writeGFF
+#' @title Reading and writing GFF-tables
 #' 
-#' @description Reading or writing a data.frame with ORF information from/to file.
+#' @description Reading or writing a \code{gff.table} from/to file.
 #' 
-#' @param in.file Name of file with an ORF-table.
-#' @param orf.table A data.frame listing ORF information, see \code{\link{orfTable}}.
+#' @param in.file Name of file with a GFF-table.
+#' @param gff.table A \code{gff.table} (\code{data.frame}) with genomic features information.
 #' @param out.file Name of file.
 #' 
-#' @details The \code{orf.table} must be a \code{data.frame} with the columns specified in
-#' \code{\link{orfTable}}. These functions use \code{\link{read.table}} and \code{\link{write.table}}
-#' to read/write such a table from/to a textfile.
+#' @details A \code{gff.table} is simply a \code{data.frame} with columns
+#' adhering to the format specified by the GFF3 format, see
+#' https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md for details. There is
+#' one row for each feature.
 #' 
-#' @return \code{readOrfTable} returns a data.frame with ORF information, see \code{\link{orfTable}}.
+#' The following columns should always be in a full \code{gff.table} of the GFF3 format:
+#' \itemize{
+#'   \item Seqid. A unique identifier of the genomic sequence on which the feature resides.
+#'   \item Source. A description of the procedure that generated the feature, e.g. \code{"R-package micropan::findOrfs"}.
+#'   \item Type The type of feature, e.g. \code{"ORF"}, \code{"16S"} etc.
+#'   \item Start. The leftmost coordinate. This is the start if the feature is on the Sense strand, but
+#'   the end if it is on the Antisense strand.
+#'   \item End. The rightmost coordinate. This is the end if the feature is on the Sense strand, but
+#'   the start if it is on the Antisense strand.
+#'   \item Score. A numeric score (E-value, P-value) from the \code{Source}. 
+#'   \item Strand. A \code{"+"} indicates Sense strand, a \code{"-"} Antisense.
+#'   \item Phase. Only relevant for coding genes. the values 0, 1 or 2 indicates the reading frame, i.e. 
+#'   the number of bases to offset the \code{Start} in order to be in the reading frame.
+#'   \item Attributes. A single string with semicolon-separated tokens prociding additional information.
+#' }
+#' Missing values are described by \code{"."} in the GFF3 format. This is also done here, except for the
+#' numerical columns Start, End, Score and Phase. Here \code{NA} is used, but this is replaced by
+#' \code{"."} when writing to file. 
 #' 
-#' \code{writeOrfTable} writes an ORF-table to a text-file.
+#' @return \code{readGFF} returns a \code{gff.table} with the columns described above.
+#' 
+#' \code{writeGFF} writes the supplied \code{gff.table} to a text-file.
 #' 
 #' @author Lars Snipen and Kristian Hovde Liland.
 #' 
@@ -110,15 +135,27 @@ gffSignature <- function( gff.table ){
 #' 
 #' @examples Mer her
 #' 
-#' @export readOrfTable writeOrfTable
+#' @export readGFF writeGFF
 #' 
-readOrfTable <- function( in.file ){
-  orf.table <- read.table( in.file, sep="\t", header=T,
-                           colClasses=c( "character", "numeric", "numeric", "numeric", "numeric" ),
-                           stringsAsFactors=F )
-  return( orf.table )
+readGFF <- function( in.file ){
+  gff.table <- read.table( in.file, sep="\t", header=F,
+                           stringsAsFactors=F, comment.char="#" )
+  if( ncol( gff.table ) != 9 ) stop( "File", in.file, "does not contain data in GFF3 format" )
+  colnames( gff.table ) <- c( "Seqid", "Source", "Type", "Start", "End", "Score", "Strand", "Phase", "Attributes" )
+  w <- options()$warn
+  options( warn=-1 )
+  gff.table$Start <- as.numeric( gff.table$Start )
+  gff.table$End <- as.numeric( gff.table$End )
+  gff.table$Score <- as.numeric( gff.table$Score )
+  gff.table$Phase <- as.numeric( gff.table$Phase )
+  options(warn=w)
+  return( gff.table )
 }
-writeOrfTable <- function( orf.table, out.file ){
-  write.table( orf.table, file=out.file, sep="\t", row.names=F )
+writeGFF <- function( gff.table, out.file ){
+  line1 <- c("##gff-version 3.2.1")
+  lines <- sapply( 1:nrow(gff.table), function(i){paste( gff.table[i,], collapse="\t" )} )
+  lines <- gsub( "\tNA\t", "\t.\t", lines )
+  lines <- gsub( "\tNA$", "\t.", lines )
+  writeLines( c( line1, lines ), con=out.file )
   return( NULL )
 }

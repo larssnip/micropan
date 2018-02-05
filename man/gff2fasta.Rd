@@ -9,7 +9,7 @@ gff2fasta(gff.table, genome)
 \arguments{
 \item{gff.table}{A \code{gff.table} (\code{data.frame}) with genomic features information.}
 
-\item{genome}{A \code{\link{Fasta}}-object with the genome sequence(s).}
+\item{genome}{A \code{\link{Fasta}} object with the genome sequence(s).}
 }
 \value{
 A \code{\link{Fasta}} object with one row for each row in \code{gff.table}. 
