@@ -56,7 +56,7 @@ gff.tab <- findOrfs( genome )
 
 }
 \seealso{
-\code{\link{gff2fasta}}, \code{\link{lorfs}}.
+\code{\link{readGFF}}, \code{\link{gff2fasta}}, \code{\link{lorfs}}.
 }
 \author{
 Lars Snipen and Kristian Hovde Liland.

@@ -13,16 +13,16 @@ gff2fasta(gff.table, genome)
 }
 \value{
 A \code{\link{Fasta}} object with one row for each row in \code{gff.table}. 
-The \code{Header} for each sequence is a summary of the \code{gff.table} information in the
+The \code{Header} for each sequence is a summary of the information in the
 corresponding row of \code{gff.table}.
 }
 \description{
 Retrieving the sequences specified in a \code{gff.table}.
 }
 \details{
-Each row in \code{gff.table} (see \code{\link{findOrfs}}) describes a genomic feature in the \code{genome}.
-This includes the \code{Seqid} indicating the genomic sequence, the coordinates \code{Start}
-and \code{Stop} as well as the \code{Strand}. Every \code{Seqid} in the \code{gff.table}
+Each row in \code{gff.table} (see \code{\link{readGFF}}) describes a genomic feature
+in the \code{genome}. The information in the columns Seqid, Start, End and Strand are used to retrieve
+the sequences from \code{genome$Sequence}. Every Seqid in the \code{gff.table}
 must match the first token in one of the \code{genome$Header} texts.
 }
 \examples{
@@ -30,7 +30,7 @@ Mer her
 
 }
 \seealso{
-\code{\link{findOrfs}}, \code{\link{lorfs}}.
+\code{\link{readGFF}}, \code{\link{findOrfs}}.
 }
 \author{
 Lars Snipen and Kristian Hovde Liland.

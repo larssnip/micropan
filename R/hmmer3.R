@@ -72,18 +72,20 @@
 #' 
 #' @export
 hmmerScan <- function( in.files, db, out.folder, threads=0, verbose=TRUE ){
-  basic <- paste( "hmmscan -o delete_me.txt --cut_ga --noali --cpu", threads )
-  db.name <- rev( unlist( strsplit( db, split="/" ) ) )[1]
-  for( i in 1:length( in.files ) ){
-    gi <- gregexpr( "GID[0-9]+", in.files[i], extract=T )
-    rname <- paste( gi, "_vs_", db.name, ".txt", sep="" )
-    res.files <- dir( out.folder )
-    if( !(rname %in% res.files) ){
-      if( verbose ) cat( "hmmerScan: Scanning", in.files[i], "...\n" )
-      command <- paste( basic, "--domtblout", file.path( out.folder, rname ), db, in.files[i]  )
-      print( command )
-      system( command )
-      file.remove( "delete_me.txt" )
+  if( available.external( "hmmer" ) ){
+    basic <- paste( "hmmscan -o delete_me.txt --cut_ga --noali --cpu", threads )
+    db.name <- rev( unlist( strsplit( db, split="/" ) ) )[1]
+    for( i in 1:length( in.files ) ){
+      gi <- gregexpr( "GID[0-9]+", in.files[i], extract=T )
+      rname <- paste( gi, "_vs_", db.name, ".txt", sep="" )
+      res.files <- dir( out.folder )
+      if( !(rname %in% res.files) ){
+        if( verbose ) cat( "hmmerScan: Scanning", in.files[i], "...\n" )
+        command <- paste( basic, "--domtblout", file.path( out.folder, rname ), db, in.files[i]  )
+        print( command )
+        system( command )
+        file.remove( "delete_me.txt" )
+      }
     }
   }
 }

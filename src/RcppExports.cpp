@@ -5,18 +5,6 @@
 
 using namespace Rcpp;
 
-// ORF_index
-Rcpp::DataFrame ORF_index(SEXP Tags, SEXP Sequence);
-RcppExport SEXP _micropan_ORF_index(SEXP TagsSEXP, SEXP SequenceSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP >::type Tags(TagsSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type Sequence(SequenceSEXP);
-    rcpp_result_gen = Rcpp::wrap(ORF_index(Tags, Sequence));
-    return rcpp_result_gen;
-END_RCPP
-}
 // extractSeq
 SEXP extractSeq(SEXP Gseq, SEXP Left, SEXP Right, SEXP Strand);
 RcppExport SEXP _micropan_extractSeq(SEXP GseqSEXP, SEXP LeftSEXP, SEXP RightSEXP, SEXP StrandSEXP) {
@@ -31,10 +19,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// ORF_index
+Rcpp::DataFrame ORF_index(SEXP Tags, SEXP Sequence);
+RcppExport SEXP _micropan_ORF_index(SEXP TagsSEXP, SEXP SequenceSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type Tags(TagsSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type Sequence(SequenceSEXP);
+    rcpp_result_gen = Rcpp::wrap(ORF_index(Tags, Sequence));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_micropan_ORF_index", (DL_FUNC) &_micropan_ORF_index, 2},
     {"_micropan_extractSeq", (DL_FUNC) &_micropan_extractSeq, 4},
+    {"_micropan_ORF_index", (DL_FUNC) &_micropan_ORF_index, 2},
     {NULL, NULL, 0}
 };
 

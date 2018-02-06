@@ -11,8 +11,7 @@ lorfs(gff.table)
 }
 \value{
 A \code{gff.table} with a subset of the rows of the argument \code{gff.table}. 
-After this filtering all stop coordinates are unique for each genome sequence. Also, the 
-\code{Type} variable is changed to \code{"LORF"}.
+After this filtering the Type variable in \code{gff.table} is changed to \code{"LORF"}.
 }
 \description{
 Filtering a \code{gff.table} with ORF information to keep only the LORFs.
@@ -27,7 +26,7 @@ Mer her
 
 }
 \seealso{
-\code{\link{findOrfs}}.
+\code{\link{readGFF}}, \code{\link{findOrfs}}.
 }
 \author{
 Lars Snipen and Kristian Hovde Liland.

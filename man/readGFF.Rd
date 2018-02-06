@@ -30,21 +30,22 @@ one row for each feature.
 
 The following columns should always be in a full \code{gff.table} of the GFF3 format:
 \itemize{
-  \item \code{Seqid}. A unique identifier of the genomic sequence on which the feature resides.
-  \item \code{Source}. A description of the procedure that generated the feature, e.g. \code{"R-package micropan::findOrfs"}.
-  \item \code{Type} The type of feature, e.g. \code{"ORF"}, \code{"16S"} etc.
-  \item \code{Start}. The leftmost coordinate. This is the start if the feature is on the Sense strand, but
+  \item Seqid. A unique identifier of the genomic sequence on which the feature resides.
+  \item Source. A description of the procedure that generated the feature, e.g. \code{"R-package micropan::findOrfs"}.
+  \item Type The type of feature, e.g. \code{"ORF"}, \code{"16S"} etc.
+  \item Start. The leftmost coordinate. This is the start if the feature is on the Sense strand, but
   the end if it is on the Antisense strand.
-  \item \code{End}. The rightmost coordinate. This is the end if the feature is on the Sense strand, but
+  \item End. The rightmost coordinate. This is the end if the feature is on the Sense strand, but
   the start if it is on the Antisense strand.
-  \item \code{Score}. A numeric score (E-value, P-value) from the \code{Source}. 
-  \item \code{Strand}. A \code{"+"} indicates Sense strand, a \code{"-"} Antisense.
-  \item \code{Phase}. Only relevant for coding genes. the values 0, 1 or 2 indicates the reading frame, i.e. 
+  \item Score. A numeric score (E-value, P-value) from the \code{Source}. 
+  \item Strand. A \code{"+"} indicates Sense strand, a \code{"-"} Antisense.
+  \item Phase. Only relevant for coding genes. the values 0, 1 or 2 indicates the reading frame, i.e. 
   the number of bases to offset the \code{Start} in order to be in the reading frame.
-  \item \code{Attributes}. A single string with semicolon-separated tokens prociding additional information.
+  \item Attributes. A single string with semicolon-separated tokens prociding additional information.
 }
-Any \code{NA} (missing data) is replaced by \code{"."} when writing to file. Similar, any \code{"."} read
-from file is converted to \code{NA}.
+Missing values are described by \code{"."} in the GFF3 format. This is also done here, except for the
+numerical columns Start, End, Score and Phase. Here \code{NA} is used, but this is replaced by
+\code{"."} when writing to file.
 }
 \examples{
 Mer her
