@@ -42,19 +42,22 @@
 #' 
 #' @seealso \code{\link{hmmerScan}}, \code{\link{blastAllAll}}.
 #' 
-#' @examples 
-#' # Using a FASTA file in the micropan package
-#' # We need to uncompress it first...
-#' extdata.path <- file.path(path.package("micropan"),"extdata")
-#' filenames <- "Mpneumoniae_309_protein.fsa"
-#' pth <- lapply( file.path( extdata.path, paste( filenames, ".xz", sep="" ) ), xzuncompress )
+#' @examples
+#' \dontrun{
+#' # Using a protein file in the micropan package
+#' extdata <- file.path(path.package("micropan"),"extdata")
+#' prot.file <- "Mpneumoniae_309_protein.fsa"
 #' 
-#' # ...then we prep it, using the GID.tag "GID123"
-#' panPrep(file.path(extdata.path,filenames),GID.tag="GID123","Mpneumoniae_309.fsa") 
+#' # We need to uncompress it first...
+#' xzuncompress(file.path(extdata,paste(prot.file,".xz",sep="")))
+#' 
+#' # Prepping it, using the GID.tag "GID123"
+#' panPrep(file.path(extdata,prot.file),GID.tag="GID123","Mpneumoniae_309.fsa") 
 #' # ...should produce a FASTA file named Mpneumoniae_309_GID123.fsa
 #' 
 #' # ...and compress the input file again...
-#' pth <- lapply( file.path( extdata.path, filenames ), xzcompress )
+#' xzcompress(file.path(extdata,prot.file))
+#' }
 #' 
 #' @importFrom microseq readFasta writeFasta
 #' 

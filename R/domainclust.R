@@ -38,28 +38,31 @@
 #' \code{\link{hmmerCleanOverlap}}, \code{\link{bClust}}.
 #' 
 #' @examples 
+#' \dontrun{
 #' # Using HMMER3 result files in the micropan package
-#' # We need to uncompress them first...
-#' extdata.path <- file.path(path.package("micropan"),"extdata")
-#' filenames <- c("GID1_vs_Pfam-A.hmm.txt",
-#' "GID2_vs_Pfam-A.hmm.txt",
-#' "GID3_vs_Pfam-A.hmm.txt")
-#' pth <- lapply( file.path( extdata.path, paste( filenames, ".xz", sep="" ) ), xzuncompress )
+#' extdata <- file.path(path.package("micropan"),"extdata")
+#' hmm.files <- c("GID1_vs_Pfam-A.hmm.txt","GID2_vs_Pfam-A.hmm.txt","GID3_vs_Pfam-A.hmm.txt")
 #' 
-#' # ...reading the HMMER3 results...
+#' # We need to uncompress them first...
+#' pth <- lapply(file.path(extdata,paste(hmm.files,".xz",sep="")),xzuncompress)
+#' 
+#' # Reading the HMMER3 results, cleaning overlaps...
 #' hmmer.table <- NULL
 #' for(i in 1:3){
-#'   htab <- readHmmer(file.path(extdata.path,filenames[i]))
-#'   htab <- hmmerCleanOverlap(htab)   # Cleaning the results by removing overlapping hits
+#'   htab <- readHmmer(file.path(extdata,hmm.files[i]))
+#'   htab <- hmmerCleanOverlap(htab)
 #'   hmmer.table <- rbind(hmmer.table,htab)
 #' }
-#' # ...and compressing the result files again...
-#' pth <- lapply( file.path( extdata.path, filenames ), xzcompress )
 #' 
-#' # Finally, the clustering
+#' # The clustering
 #' clustering.domains <- dClust(hmmer.table)
 #' 
-#' @export
+#' # ...and compressing the result files again...
+#' pth <- lapply(file.path(extdata,hmm.files),xzcompress)
+#' }
+#' 
+#' @export dClust
+#' 
 dClust <- function( hmmer.table ){
   cat( "dClust:\n" )
   cat( "...hmmer.table contains", length( unique( hmmer.table$Query ) ), "proteins...\n" )

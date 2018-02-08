@@ -22,6 +22,7 @@
 #' @author Kristian Hovde Liland.
 #' 
 #' @examples
+#' \dontrun{
 #' cat(file="foo.txt", "Hello world!")
 #' xzcompress("foo.txt")
 #' file.remove("foo.txt")
@@ -29,8 +30,9 @@
 #' xzuncompress("foo.txt.xz")
 #' print(file.info("foo.txt"))
 #' file.remove("foo.txt")
+#' }
 #' 
-#' @export
+#' @export xzcompress
 xzcompress <- function (filename, destname = sprintf("%s.xz", filename), temporary = FALSE, 
           skip = FALSE, overwrite = FALSE, remove = TRUE, BFR.SIZE = 1e+07, compression = 6,
           ...) 

@@ -49,7 +49,8 @@
 #' plot(panmat.blast)
 #' summary(panmat.blast)
 #' 
-#' @export
+#' @export panMatrix
+#' 
 panMatrix <- function( clustering ){
   gids <- sapply( microseq::gregexpr( "GID[0-9]+", names( clustering ), extract=T ), function(x){x[1]} )
   ugids <- sort( unique( gids ) )

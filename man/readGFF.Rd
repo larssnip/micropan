@@ -6,6 +6,7 @@
 \title{Reading and writing GFF-tables}
 \usage{
 readGFF(in.file)
+writeGFF(gff.table, out.file)
 }
 \arguments{
 \item{in.file}{Name of file with a GFF-table.}
@@ -48,11 +49,26 @@ numerical columns Start, End, Score and Phase. Here \code{NA} is used, but this 
 \code{"."} when writing to file.
 }
 \examples{
-Mer her
+\dontrun{
+#' # Using a GFF file in this package
+extdata <- file.path(path.package("micropan"),"extdata")
+gff.file <- "Mpneumoniae_309_prodigal.gff"
+
+# We need to uncompress it first...
+xzuncompress(file.path(extdata,paste(gff.file,".xz",sep="")))
+
+# Reading, finding signature, and writing...
+gff.table <- readGFF(file.path(extdata,gff.file))
+print(gffSignature(gff.table))
+writeGFF(gff.table[1:3,], out.file="delete_me.gff")
+
+# ...and compressing the GFF file again...
+xzcompress(file.path(extdata,gff.file))
+}
 
 }
 \seealso{
-\code{\link{orfTable}}, \code{\link{lorf}}.
+\code{\link{findOrfs}}, \code{\link{lorfs}}.
 }
 \author{
 Lars Snipen and Kristian Hovde Liland.

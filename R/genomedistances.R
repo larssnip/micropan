@@ -42,7 +42,8 @@
 #' 
 #' @importFrom stats sd
 #' 
-#' @export
+#' @export fluidity
+#' 
 fluidity <- function( pan.matrix, n.sim=10 ){
   pan.matrix[which( pan.matrix > 0, arr.ind=T )] <- 1
   ng <- dim( pan.matrix )[1]
@@ -95,7 +96,8 @@ fluidity <- function( pan.matrix, n.sim=10 ){
 #' # Jaccard distances based on domain sequence clustering Panmat object
 #' Jdist.domains <- distJaccard(Mpneumoniae.domain.panmat) 
 #' 
-#' @export
+#' @export distJaccard
+#' 
 distJaccard <- function( pan.matrix ){
   pan.matrix[which( pan.matrix > 0, arr.ind=T )] <- 1
   ng <- dim( pan.matrix )[1]
@@ -168,7 +170,8 @@ distJaccard <- function( pan.matrix ){
 #' 
 #' @importFrom stats dist
 #' 
-#' @export
+#' @export distManhattan
+#' 
 distManhattan <- function( pan.matrix, scale=0.0, weights=rep( 1, dim( pan.matrix )[2] ) ){
   if( (scale>1)|(scale<0) ){
     warning( "scale should be between 0.0 and 1.0, using scale=0.0" )
@@ -221,7 +224,8 @@ distManhattan <- function( pan.matrix, scale=0.0, weights=rep( 1, dim( pan.matri
 #' w <- geneWeights(Mpneumoniae.blast.panmat,type="shell")
 #' Mdist.blast <- distManhattan(Mpneumoniae.blast.panmat,weights=w)
 #' 
-#' @export
+#' @export geneWeights
+#' 
 geneWeights <- function( pan.matrix, type=c("shell","cloud") ){
   ng <- dim( pan.matrix )[1]
   nf <- dim( pan.matrix )[2]

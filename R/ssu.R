@@ -11,38 +11,41 @@
 #' rRNA genes (5S, 16S, 23S). This free software can be installed from https://github.com/tseemann/barrnap.
 #' 
 #' @return A \code{gff.table} (see \code{\link{readGFF}} for details) with one row for each detected
-#' rRNA sequence. 
+#' rRNA sequence.
+#' 
+#' @note The barrnap software must be installed on the system for this function to work, i.e. the command
+#' \samp{system("barrnap --help")} must be recognized as a valid command if you run it in the Console window.
 #' 
 #' @author Lars Snipen and Kristian Hovde Liland.
 #' 
 #' @seealso \code{\link{readGFF}}, \code{\link{gff2fasta}}.
 #' 
 #' @examples
-#' # Using a genome FASTA file in this package.
-#' # We need to uncompress it first...
 #' \dontrun{
-#' extdata.path <- file.path(path.package("micropan"),"extdata")
-#' genome.file <- xzuncompress(file.path(extdata.path, "Mpneumoniae_309_genome.fsa.xz"))
+#' # Using a genome file in this package.
+#' extdata <- file.path(path.package("micropan"),"extdata")
+#' genome.file <- "Mpneumoniae_309_genome.fsa"
 #' 
-#' #...searching for rRNA sequences...
-#' ssu.table <- barrnap( genome.file )
+#' # We need to uncompress it first...
+#' xzuncompress(file.path(extdata,paste(genome.file,".xz",sep="")))
 #' 
-#' # Inspecting the hits
-#' print(ssu.table)
+#' # Searching for rRNA sequences, and inspecting
+#' gff.table <- barrnap(file.path(extdata,genome.file))
+#' print(gff.table)
 #' 
 #' # Retrieving the sequences
-#' genome <- readFasta(genome.file)
-#' rRNA.fasta <- gff2fasta(ssu.table, genome)
+#' genome <- readFasta(file.path(extdata,genome.file))
+#' rRNA.fasta <- gff2fasta(ssu.table,genome)
 #' 
 #' # ...and compressing the genome FASTA file again...
-#' genome.file.xz <- xzcompress(genome.file)
+#' xzcompress(file.path(extdata,genome.file))
 #' }
 #' 
 #' @export barrnap
 #' 
 barrnap <- function( genome.file, bacteria=TRUE, cpu=1 ){
   if( available.external( "barrnap" ) ){
-    kingdom <- ifelse( Bacteria, "bac", "arc" )
+    kingdom <- ifelse( bacteria, "bac", "arc" )
     cmd <- paste( "barrnap --quiet --kingdom", kingdom, genome.file, "> barrnap.gff" )
     system( cmd )
     gff.table <- readGFF( "barrnap.gff" )

@@ -21,7 +21,7 @@ data together, adding some explanatory text. This function is used by \code{link
 to create the Header-lines for the \code{\link{Fasta}} object when retrieving the sequences.
 }
 \examples{
-Mer her
+# See the example in the Help-file for readGFF.
 
 }
 \seealso{

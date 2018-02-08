@@ -22,7 +22,7 @@ frame (nested ORFs). The LORF (Longest ORF) is defined as the longest of these n
 i.e. the ORF starting at the most upstream start-codon matching the stop-codon.
 }
 \examples{
-Mer her
+# See the example in the Help-file for findOrfs.
 
 }
 \seealso{

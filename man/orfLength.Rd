@@ -19,11 +19,11 @@ Computes the lengths of all ORFs in a \code{gff.table}.
 See \code{\link{findOrfs}} for more on \code{gff.table}s.
 }
 \examples{
-Mer her
+# See the example in the Help-file for findOrfs.
 
 }
 \seealso{
-\code{\link{findOrfs}}.
+\code{\link{findOrfs}}, \code{\link{lorfs}}.
 }
 \author{
 Lars Snipen and Kristian Hovde Liland.

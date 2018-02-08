@@ -39,10 +39,10 @@
 #' \code{\link{isOrtholog}}.
 #' 
 #' @examples
+#' \dontrun{
 #' # Using BLAST result files in this package...
-#' # We need to uncompress them first:
-#' extdata.path <- file.path(path.package("micropan"),"extdata")
-#' filenames <- c("GID1_vs_GID1.txt",
+#' extdata <- file.path(path.package("micropan"),"extdata")
+#' blast.files <- c("GID1_vs_GID1.txt",
 #' "GID1_vs_GID2.txt",
 #' "GID1_vs_GID3.txt",
 #' "GID2_vs_GID1.txt",
@@ -51,13 +51,16 @@
 #' "GID3_vs_GID1.txt",
 #' "GID3_vs_GID2.txt",
 #' "GID3_vs_GID3.txt")
-#' pth <- lapply( file.path( extdata.path, paste( filenames, ".xz", sep="" ) ), xzuncompress )
 #' 
-#' # ...using \code{bDist} to find distances...
-#' blast.distances <- bDist(file.path(extdata.path,filenames))
+#' # We need to uncompress them first...
+#' pth <- lapply(file.path(extdata,paste(blast.files,".xz",sep="")),xzuncompress)
 #' 
-#' # ...and compressing the BLAST result files again...
-#' pth <- lapply( file.path( extdata.path, filenames ), xzcompress )
+#' # Computing pairwise distances
+#' blast.distances <- bDist(file.path(extdata,blast.files))
+#' 
+#' # ...and compressing the BLAST files again...
+#' pth <- lapply(file.path(extdata,blast.files),xzcompress)
+#' }
 #' 
 #' @importFrom microseq gregexpr
 #' 

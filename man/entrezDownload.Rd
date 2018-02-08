@@ -41,8 +41,10 @@ up in this file. If you want to download multiple genomes, you call \code{\link{
 times.
 }
 \examples{
+\dontrun{
 # Accession numbers for the chromosome and plasmid of Buchnera aphidicola, strain APS
-entrezDownload( accession="BA000003.2,AP001071.1", out.file="Buchnera_aphidicola_APS.fsa" )
+entrezDownload(accession="BA000003.2,AP001071.1",out.file="Buchnera_aphidicola_APS.fsa")
+}
 
 }
 \seealso{

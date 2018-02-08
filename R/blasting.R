@@ -4,7 +4,7 @@
 #' @description Runs a reciprocal all-against-all BLAST search to look for similarity of proteins
 #' within and across genomes. The main job is done by the BLAST+ software.
 #' 
-#' @param in.files A text vector with the names of the FASTA files where the protein sequences of
+#' @param prot.files A text vector with the names of the FASTA files where the protein sequences of
 #' each genome is found.
 #' @param out.folder The name of the folder where the result files should end up.
 #' @param e.value The chosen E-value threshold in BLAST. Default is \samp{e.value=1}, a smaller value
@@ -19,7 +19,7 @@
 #' groups or families. One commonly used approach is based on reciprocal BLASTing. This function uses the
 #' BLAST+ software available for free from NCBI (Camacho et al, 2009). 
 #' 
-#' A vector listing FASTA files of protein sequences is given as input in \samp{in.files}. These files
+#' A vector listing FASTA files of protein sequences is given as input in \samp{prot.files}. These files
 #' must have the GID-tag in the first token of every header, and in their filenames as well, i.e. all input
 #' files should first be prepared by \code{\link{panPrep}} to ensure this. Note that only protein sequences
 #' are considered here. If your coding genes are stored as DNA, please translate them to protein prior to
@@ -47,15 +47,15 @@
 #' commonly they are used as input to \code{\link{bDist}} to compute distances between sequences for subsequent
 #' clustering.
 #' 
-#' @return The function produces \emph{N*N} result files if \samp{in.files} lists \emph{N} sequence files.
+#' @return The function produces \emph{N*N} result files if \samp{prot.files} lists \emph{N} sequence files.
 #' These result files are located in \code{out.folder}. Existing files are never overwritten by
 #' \code{\link{blastAllAll}}, if you want to re-compute something, delete the corresponding result files first.
 #' 
 #' @references Camacho, C., Coulouris, G., Avagyan, V., Ma, N., Papadopoulos, J., Bealer, K., Madden, T.L.
 #' (2009). BLAST+: architecture and applications. BMC Bioinformatics, 10:421.
 #' 
-#' @note The BLAST+ software must be installed on the system for this function to work, i.e. the commands
-#' \samp{system("makeblastdb")} and \samp{system("blastp")} must be recognized as valid commands if you
+#' @note The BLAST+ software must be installed on the system for this function to work, i.e. the command
+#' \samp{system("makeblastdb -help")} must be recognized as valid commands if you
 #' run them in the Console window.
 #' 
 #' @author Lars Snipen and Kristian Hovde Liland.
@@ -63,36 +63,36 @@
 #' @seealso \code{\link{panPrep}}, \code{\link{readBlastTable}}, \code{\link{bDist}}.
 #' 
 #' @examples 
-#' # Using FASTA files in this package.
-#' # We need to uncompress them first...
 #' \dontrun{
-#' extdata.path <- file.path(path.package("micropan"),"extdata")
-#' filenames <- c("Mpneumoniae_M129_GID1.fsa",
-#' "Mpneumoniae_309_GID2.fsa",
-#' "Mpneumoniae_FH_GID3.fsa")
-#' pth <- lapply( file.path( extdata.path, paste( filenames, ".xz", sep="" ) ), xzuncompress )
-#' #...blasting, assuming the BLAST+ software is properly installed
-#' # NB! This will take some minute(s)!
-#' blastAllAll(in.files=file.path(extdata.path,filenames),out.folder=".")
-#' # ...and compressing the FASTA files again...
-#' pth <- lapply( file.path( extdata.path, filenames ), xzcompress )
+#' # Using protein files in this package
+#' extdata <- file.path(path.package("micropan"),"extdata")
+#' prot.files <- c("Mpneumoniae_M129_GID1.fsa","Mpneumoniae_309_GID2.fsa","Mpneumoniae_FH_GID3.fsa")
+#' 
+#' # We need to uncompress them first...
+#' pth <- lapply(file.path(extdata,paste(prot.files,".xz",sep="")),xzuncompress)
+#' 
+#' # Blasting all versus all, this will take some minute(s)!
+#' blastAllAll(file.path(extdata,prot.files),out.folder=".")
+#' 
+#' # ...and compressing the files again...
+#' pth <- lapply(file.path(extdata,prot.files),xzcompress)
 #' }
 #' 
 #' @importFrom microseq gregexpr
 #' @export
-blastAllAll <- function( in.files, out.folder, e.value=1, job=1, threads=1, verbose=T ){
+blastAllAll <- function( prot.files, out.folder, e.value=1, job=1, threads=1, verbose=T ){
   if( available.external( "blast+" ) ){
-    for( i in 1:length( in.files ) ){
-      command <- paste( "makeblastdb -logfile log.txt -dbtype prot -out blastDB", job, " -in ", in.files[i], sep="" )
+    for( i in 1:length( prot.files ) ){
+      command <- paste( "makeblastdb -logfile log.txt -dbtype prot -out blastDB", job, " -in ", prot.files[i], sep="" )
       system( command )
-      gi <- gregexpr( "GID[0-9]+", in.files[i], extract=T )
-      for( j in 1:length( in.files ) ){
-        gj <- gregexpr( "GID[0-9]+", in.files[j], extract=T )    
+      gi <- gregexpr( "GID[0-9]+", prot.files[i], extract=T )
+      for( j in 1:length( prot.files ) ){
+        gj <- gregexpr( "GID[0-9]+", prot.files[j], extract=T )    
         rname <- paste( gj, "_vs_", gi, ".txt", sep="" )
         res.files <- dir( out.folder )
         if( !(rname %in% res.files) ){
           if( verbose ) cat( "blastAllAll: ", rname, "\n" )
-          input <- paste( "-query ", in.files[j], sep="" )
+          input <- paste( "-query ", prot.files[j], sep="" )
           dbase <- paste( "-db blastDB", job, sep="" )
           output <- paste( "-out ", file.path( out.folder, rname ), sep="" )
           command <- paste( "blastp -matrix BLOSUM45 -evalue", e.value, "-num_threads", threads,
@@ -128,17 +128,20 @@ blastAllAll <- function( in.files, out.folder, e.value=1, job=1, threads=1, verb
 #' @seealso \code{\link{blastAllAll}}, \code{\link{bDist}}.
 #' 
 #' @examples 
+#' \dontrun{
 #' # Using a BLAST result file in this package
+#' extdata <- file.path(path.package("micropan"),"extdata")
+#' blast.file <- "GID1_vs_GID2.txt"
+#' 
 #' # We need to uncompress it first...
-#' extdata.path <- file.path(path.package("micropan"),"extdata")
-#' filenames <- "GID1_vs_GID2.txt"
-#' pth <- lapply( file.path( extdata.path, paste( filenames, ".xz", sep="" ) ), xzuncompress )
+#' xzuncompress(file.path(extdata,paste(blast.file,".xz",sep="")))
 #' 
 #' #...then we can read it...
-#' blast.table <- readBlastTable(file.path(extdata.path,filenames))
+#' blast.table <- readBlastTable(file.path(extdata,blast.file))
 #' 
 #' # ...and compressing it again...
-#' pth <- lapply( file.path( extdata.path, filenames ), xzcompress )
+#' xzcompress(file.path(extdata,blast.file))
+#' }
 #' 
 #' @importFrom utils read.table
 #' 

@@ -19,10 +19,33 @@
 #' 
 #' @seealso \code{\link{readGFF}}, \code{\link{findOrfs}}.
 #' 
-#' @examples Mer her
+#' @examples
+#' \dontrun{
+#' # Using two files in this package
+#' extdata <- file.path(path.package("micropan"),"extdata")
+#' gff.file <- "Mpneumoniae_309_prodigal.gff"
+#' genome.file <- "Mpneumoniae_309_genome.fsa"
+#' 
+#' # We need to uncompress them first...
+#' xzuncompress(file.path(extdata,paste(gff.file,".xz",sep="")))
+#' xzuncompress(file.path(extdata,paste(genome.file,".xz",sep="")))
+#' 
+#' # Reading
+#' gff.table <- readGFF(file.path(extdata,gff.file))
+#' genome <- readFasta(file.path(extdata,genome.file))
+#' 
+#' # Retrieving sequences
+#' fasta.obj <- gff2fasta(gff.table,genome)
+#' summary(fasta.obj)
+#' plot(fasta.obj)
+#' 
+#' # ...and compressing the files again...
+#' xzcompress(file.path(extdata.path,gff.file))
+#' xzcompress(file.path(extdata.path,genome.file))
+#' }
 #' 
 #' @useDynLib micropan
-#' @importFrom Rcpp evalCpp
+#' @importFrom Rcpp evalCpp microseq reverseComplement
 #' 
 #' @export gff2fasta
 #' 
@@ -69,7 +92,7 @@ gff2fasta <- function( gff.table, genome ){
 #' 
 #' @seealso \code{\link{findOrfs}}, \code{\link{gff2fasta}}.
 #' 
-#' @examples Mer her
+#' @examples # See the example in the Help-file for readGFF.
 #' 
 #' @useDynLib micropan
 #' 
@@ -92,10 +115,13 @@ gffSignature <- function( gff.table ){
 
 
 #' @name readGFF
-#' @aliases readGFF writeGFF
 #' @title Reading and writing GFF-tables
+#' @aliases readGFF writeGFF
 #' 
 #' @description Reading or writing a \code{gff.table} from/to file.
+#' 
+#' @usage readGFF(in.file)
+#' writeGFF(gff.table, out.file)
 #' 
 #' @param in.file Name of file with a GFF-table.
 #' @param gff.table A \code{gff.table} (\code{data.frame}) with genomic features information.
@@ -131,9 +157,25 @@ gffSignature <- function( gff.table ){
 #' 
 #' @author Lars Snipen and Kristian Hovde Liland.
 #' 
-#' @seealso \code{\link{orfTable}}, \code{\link{lorf}}.
+#' @seealso \code{\link{findOrfs}}, \code{\link{lorfs}}.
 #' 
-#' @examples Mer her
+#' @examples
+#' \dontrun{
+#' #' # Using a GFF file in this package
+#' extdata <- file.path(path.package("micropan"),"extdata")
+#' gff.file <- "Mpneumoniae_309_prodigal.gff"
+#' 
+#' # We need to uncompress it first...
+#' xzuncompress(file.path(extdata,paste(gff.file,".xz",sep="")))
+#' 
+#' # Reading, finding signature, and writing...
+#' gff.table <- readGFF(file.path(extdata,gff.file))
+#' print(gffSignature(gff.table))
+#' writeGFF(gff.table[1:3,], out.file="delete_me.gff")
+#' 
+#' # ...and compressing the GFF file again...
+#' xzcompress(file.path(extdata,gff.file))
+#' }
 #' 
 #' @export readGFF writeGFF
 #' 
@@ -152,10 +194,10 @@ readGFF <- function( in.file ){
   return( gff.table )
 }
 writeGFF <- function( gff.table, out.file ){
-  line1 <- c("##gff-version 3.2.1")
+  line1 <- c("##gff-version 3")
   lines <- sapply( 1:nrow(gff.table), function(i){paste( gff.table[i,], collapse="\t" )} )
   lines <- gsub( "\tNA\t", "\t.\t", lines )
   lines <- gsub( "\tNA$", "\t.", lines )
   writeLines( c( line1, lines ), con=out.file )
-  return( NULL )
+  return( paste( "gff.table written to", out.file) )
 }

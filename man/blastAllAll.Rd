@@ -4,11 +4,11 @@
 \alias{blastAllAll}
 \title{Making BLAST search all against all genomes}
 \usage{
-blastAllAll(in.files, out.folder, e.value = 1, job = 1, threads = 1,
+blastAllAll(prot.files, out.folder, e.value = 1, job = 1, threads = 1,
   verbose = T)
 }
 \arguments{
-\item{in.files}{A text vector with the names of the FASTA files where the protein sequences of
+\item{prot.files}{A text vector with the names of the FASTA files where the protein sequences of
 each genome is found.}
 
 \item{out.folder}{The name of the folder where the result files should end up.}
@@ -25,7 +25,7 @@ and each job should have different number here to avoid confusion on databases. 
 \item{verbose}{Logical, if \code{TRUE} some text output is produced to monitor the progress.}
 }
 \value{
-The function produces \emph{N*N} result files if \samp{in.files} lists \emph{N} sequence files.
+The function produces \emph{N*N} result files if \samp{prot.files} lists \emph{N} sequence files.
 These result files are located in \code{out.folder}. Existing files are never overwritten by
 \code{\link{blastAllAll}}, if you want to re-compute something, delete the corresponding result files first.
 }
@@ -38,7 +38,7 @@ A basic step in pangenomics and many other comparative studies is to cluster pro
 groups or families. One commonly used approach is based on reciprocal BLASTing. This function uses the
 BLAST+ software available for free from NCBI (Camacho et al, 2009). 
 
-A vector listing FASTA files of protein sequences is given as input in \samp{in.files}. These files
+A vector listing FASTA files of protein sequences is given as input in \samp{prot.files}. These files
 must have the GID-tag in the first token of every header, and in their filenames as well, i.e. all input
 files should first be prepared by \code{\link{panPrep}} to ensure this. Note that only protein sequences
 are considered here. If your coding genes are stored as DNA, please translate them to protein prior to
@@ -67,24 +67,24 @@ commonly they are used as input to \code{\link{bDist}} to compute distances betw
 clustering.
 }
 \note{
-The BLAST+ software must be installed on the system for this function to work, i.e. the commands
-\samp{system("makeblastdb")} and \samp{system("blastp")} must be recognized as valid commands if you
+The BLAST+ software must be installed on the system for this function to work, i.e. the command
+\samp{system("makeblastdb -help")} must be recognized as valid commands if you
 run them in the Console window.
 }
 \examples{
-# Using FASTA files in this package.
-# We need to uncompress them first...
 \dontrun{
-extdata.path <- file.path(path.package("micropan"),"extdata")
-filenames <- c("Mpneumoniae_M129_GID1.fsa",
-"Mpneumoniae_309_GID2.fsa",
-"Mpneumoniae_FH_GID3.fsa")
-pth <- lapply( file.path( extdata.path, paste( filenames, ".xz", sep="" ) ), xzuncompress )
-#...blasting, assuming the BLAST+ software is properly installed
-# NB! This will take some minute(s)!
-blastAllAll(in.files=file.path(extdata.path,filenames),out.folder=".")
-# ...and compressing the FASTA files again...
-pth <- lapply( file.path( extdata.path, filenames ), xzcompress )
+# Using protein files in this package
+extdata <- file.path(path.package("micropan"),"extdata")
+prot.files <- c("Mpneumoniae_M129_GID1.fsa","Mpneumoniae_309_GID2.fsa","Mpneumoniae_FH_GID3.fsa")
+
+# We need to uncompress them first...
+pth <- lapply(file.path(extdata,paste(prot.files,".xz",sep="")),xzuncompress)
+
+# Blasting all versus all, this will take some minute(s)!
+blastAllAll(file.path(extdata,prot.files),out.folder=".")
+
+# ...and compressing the files again...
+pth <- lapply(file.path(extdata,prot.files),xzcompress)
 }
 
 }

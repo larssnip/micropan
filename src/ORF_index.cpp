@@ -21,15 +21,15 @@ Rcpp::DataFrame ORF_index(SEXP Tags, SEXP Sequence) {
   std::vector<std::string> outSeqid;
   std::vector<int> outStrand;
   std::vector<int> outStart;
-  std::vector<int> outStop;
+  std::vector<int> outEnd;
   std::vector<int> outTruncated;
   
   // Loop over Genome Sequences
   for(int str=0; str<n; ++str){
     std::vector<int> outoutStart;
-    std::vector<int> outoutStop;
+    std::vector<int> outoutEnd;
     std::vector<int> outoutStartRC;
-    std::vector<int> outoutStopRC;
+    std::vector<int> outoutEndRC;
     std::vector<int> outoutTruncated;
     std::vector<int> outoutTruncatedRC;
     
@@ -52,7 +52,7 @@ Rcpp::DataFrame ORF_index(SEXP Tags, SEXP Sequence) {
       C2 = C3;
       C3 = cur[pos];
       
-      // Minimal testing for start/end forward/reverse complement (start = 1/-1, stop = 2/-2)
+      // Minimal testing for start/end forward/reverse complement (start = 1/-1, End = 2/-2)
       ret = 0;
       if(C1 == "T"){
         if(C3 == "G"){
@@ -130,13 +130,13 @@ Rcpp::DataFrame ORF_index(SEXP Tags, SEXP Sequence) {
             if(pos % 3 == 2){ // s1, start1, first reading frame
               if(s1 == -1 && st1){ // Truncated match, no start codon forward
                 outoutStart.push_back( 1 );
-                outoutStop.push_back( pos+1 );
+                outoutEnd.push_back( pos+1 );
                 outoutTruncated.push_back( 1 );
                 st1 = false;
               } else { // Full match forward
                 for(int ss1=0; ss1<=s1; ++ss1){
                   outoutStart.push_back( start1[ss1]-1 );
-                  outoutStop.push_back( pos+1 );
+                  outoutEnd.push_back( pos+1 );
                   outoutTruncated.push_back( 0 );
                 }
                 s1  = -1;
@@ -146,13 +146,13 @@ Rcpp::DataFrame ORF_index(SEXP Tags, SEXP Sequence) {
               if(pos % 3 == 0){ // s2, start2
                 if(s2 == -1 && st2){ // Truncated match, no start codon forward
                   outoutStart.push_back( 2 );
-                  outoutStop.push_back( pos+1 );
+                  outoutEnd.push_back( pos+1 );
                   outoutTruncated.push_back( 1 );
                   st2 = false;
                 } else { // Full match forward
                   for(int ss2=0; ss2<=s2; ++ss2){
                     outoutStart.push_back( start2[ss2]-1 );
-                    outoutStop.push_back( pos+1 );
+                    outoutEnd.push_back( pos+1 );
                     outoutTruncated.push_back( 0 );
                   }
                   s2  = -1;
@@ -161,13 +161,13 @@ Rcpp::DataFrame ORF_index(SEXP Tags, SEXP Sequence) {
               } else { // s3, start3
                 if(s3 == -1 && st3){ // Truncated match, no start codon forward
                   outoutStart.push_back( 3 );
-                  outoutStop.push_back( pos+1 );
+                  outoutEnd.push_back( pos+1 );
                   outoutTruncated.push_back( 1 );
                   st3 = false;
                 } else { // Full match forward
                   for(int ss3=0; ss3<=s3; ++ss3){
                     outoutStart.push_back( start3[ss3]-1 );
-                    outoutStop.push_back( pos+1 );
+                    outoutEnd.push_back( pos+1 );
                     outoutTruncated.push_back( 0 );
                   }
                   s3  = -1;
@@ -181,32 +181,32 @@ Rcpp::DataFrame ORF_index(SEXP Tags, SEXP Sequence) {
             if(pos % 3 == 2){ // e1
               if(e1 < 0){ // No stop codon
                 outoutStartRC.push_back( 1 );
-                outoutStopRC.push_back( pos+1 );
+                outoutEndRC.push_back( pos+1 );
                 outoutTruncatedRC.push_back( 1 );
               } else { // Full match
                 outoutStartRC.push_back( e1-1 );
-                outoutStopRC.push_back( pos+1 );
+                outoutEndRC.push_back( pos+1 );
                 outoutTruncatedRC.push_back( 0 );
               }
             } else {
               if(pos % 3 == 0){ // e2
                 if(e2 < 0){ // No stop codon
                   outoutStartRC.push_back( 2 );
-                  outoutStopRC.push_back( pos+1 );
+                  outoutEndRC.push_back( pos+1 );
                   outoutTruncatedRC.push_back( 1 );
                 } else { // Full match
                   outoutStartRC.push_back( e2-1 );
-                  outoutStopRC.push_back( pos+1 );
+                  outoutEndRC.push_back( pos+1 );
                   outoutTruncatedRC.push_back( 0 );
                 }
               } else { // s3, start3
                 if(e3 < 0){ // No stop codon
                   outoutStartRC.push_back( 3 );
-                  outoutStopRC.push_back( pos+1 );
+                  outoutEndRC.push_back( pos+1 );
                   outoutTruncatedRC.push_back( 1 );
                 } else { // Full match
                   outoutStartRC.push_back( e3-1 );
-                  outoutStopRC.push_back( pos+1 );
+                  outoutEndRC.push_back( pos+1 );
                   outoutTruncatedRC.push_back( 0 );
                 }
               }
@@ -233,21 +233,21 @@ Rcpp::DataFrame ORF_index(SEXP Tags, SEXP Sequence) {
           if(pos % 3 == 2 && s1 >= 0){
             for(int ss1=0; ss1<=s1; ++ss1){
               outoutStart.push_back( start1[ss1]-1 );
-              outoutStop.push_back( lStr-2 );
+              outoutEnd.push_back( lStr-2 );
               outoutTruncated.push_back( -1 );
             }
           }
           if(pos % 3 == 0 && s2 >= 0){
             for(int ss2=0; ss2<=s2; ++ss2){
               outoutStart.push_back( start2[ss2]-1 );
-              outoutStop.push_back( lStr-1 );
+              outoutEnd.push_back( lStr-1 );
               outoutTruncated.push_back( -1 );
             }
           }
           if(pos % 3 == 1 && s3 >= 0){
             for(int ss3=0; ss3<=s3; ++ss3){
               outoutStart.push_back( start3[ss3]-1 );
-              outoutStop.push_back( lStr );
+              outoutEnd.push_back( lStr );
               outoutTruncated.push_back( -1 );
             }
           }
@@ -255,17 +255,17 @@ Rcpp::DataFrame ORF_index(SEXP Tags, SEXP Sequence) {
         if(ret >= 0){ // Last letter does not make start/stop codon (reverse complement)
           if(pos % 3 == 2 && e1 >= 0){
             outoutStartRC.push_back( e1-1 );
-            outoutStopRC.push_back( lStr-2 );
+            outoutEndRC.push_back( lStr-2 );
             outoutTruncatedRC.push_back( -1 );
           }
           if(pos % 3 == 0 && e2 >= 0){
             outoutStartRC.push_back( e2-1 );
-            outoutStopRC.push_back( lStr-1 );
+            outoutEndRC.push_back( lStr-1 );
             outoutTruncatedRC.push_back( -1 );
           }
           if(pos % 3 == 1 && e3 >= 0){
             outoutStartRC.push_back( e3-1 );
-            outoutStopRC.push_back( lStr );
+            outoutEndRC.push_back( lStr );
             outoutTruncatedRC.push_back( -1 );
           }
         }
@@ -275,9 +275,9 @@ Rcpp::DataFrame ORF_index(SEXP Tags, SEXP Sequence) {
     
     // Store results in main vectors
     outStart.insert(  outStart.end(),  outoutStart.begin(),  outoutStart.end()  );
-    outStop.insert( outStop.end(), outoutStop.begin(), outoutStop.end() );
+    outEnd.insert( outEnd.end(), outoutEnd.begin(), outoutEnd.end() );
     outStart.insert(  outStart.end(),  outoutStartRC.begin(),  outoutStartRC.end()  );
-    outStop.insert( outStop.end(), outoutStopRC.begin(), outoutStopRC.end() );
+    outEnd.insert( outEnd.end(), outoutEndRC.begin(), outoutEndRC.end() );
     std::vector<int> outoutStrandP(outoutStart.size(),1);
     std::vector<int> outoutStrandM(outoutStartRC.size(),-1);
     outStrand.insert( outStrand.end(), outoutStrandP.begin(), outoutStrandP.end() );
@@ -297,7 +297,7 @@ Rcpp::DataFrame ORF_index(SEXP Tags, SEXP Sequence) {
     Rcpp::Named("Seqid")      = outSeqid,
     Rcpp::Named("Strand")     = outStrand,
     Rcpp::Named("Start")      = outStart,
-    Rcpp::Named("Stop")       = outStop,
+    Rcpp::Named("End")        = outEnd,
     Rcpp::Named("Truncated")  = outTruncated);
     
   return outDF;

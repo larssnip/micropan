@@ -42,6 +42,7 @@ These functions are adapted from the \code{R.utils} package from gzip to xz. Int
 process is interrupted before completed, the partially written output file is automatically removed.
 }
 \examples{
+\dontrun{
 cat(file="foo.txt", "Hello world!")
 xzcompress("foo.txt")
 file.remove("foo.txt")
@@ -49,6 +50,7 @@ print(file.info("foo.txt.xz"))
 xzuncompress("foo.txt.xz")
 print(file.info("foo.txt"))
 file.remove("foo.txt")
+}
 
 }
 \author{

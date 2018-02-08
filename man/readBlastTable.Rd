@@ -22,17 +22,20 @@ has been invoked during its call. This option forces BLAST to produce a short ta
 each BLAST search. The function \code{\link{blastAllAll}} produces such files.
 }
 \examples{
+\dontrun{
 # Using a BLAST result file in this package
+extdata <- file.path(path.package("micropan"),"extdata")
+blast.file <- "GID1_vs_GID2.txt"
+
 # We need to uncompress it first...
-extdata.path <- file.path(path.package("micropan"),"extdata")
-filenames <- "GID1_vs_GID2.txt"
-pth <- lapply( file.path( extdata.path, paste( filenames, ".xz", sep="" ) ), xzuncompress )
+xzuncompress(file.path(extdata,paste(blast.file,".xz",sep="")))
 
 #...then we can read it...
-blast.table <- readBlastTable(file.path(extdata.path,filenames))
+blast.table <- readBlastTable(file.path(extdata,blast.file))
 
 # ...and compressing it again...
-pth <- lapply( file.path( extdata.path, filenames ), xzcompress )
+xzcompress(file.path(extdata,blast.file))
+}
 
 }
 \seealso{

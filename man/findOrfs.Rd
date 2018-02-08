@@ -45,14 +45,28 @@ larger than the length of the genome sequence. This is in line with the specific
 a Start cannot be larger than the corresponding End.
 }
 \examples{
-# Reading a small genome into R (uncompressing it first):
-extdata.path <- file.path(path.package("micropan"),"extdata")
-pth <- lapply( file.path( extdata.path, "Mpneumoniae_309_genome.fsa.xz" ), xzuncompress )  # uncompressing file...
-genome <- readFasta( file.path( extdata.path, "Mpneumoniae_309_genome.fsa" ) )
-pth <- lapply( file.path( extdata.path, "Mpneumoniae_309_genome.fsa" ), xzcompress )   # ...and compressing it again...
+\dontrun{
+# Using a genome file in this package
+extdata <- file.path(path.package("micropan"),"extdata")
+genome.file <- "Mpneumoniae_309_genome.fsa"
 
-# Finding ORFs
-gff.tab <- findOrfs( genome )
+# We need to uncompress them first...
+xzuncompress(file.path(extdata,paste(genome.file,".xz",sep="")))
+
+# Reading into R and finding orfs
+genome <- readFasta(file.path(extdata,genome.file))
+orf.table <- findOrfs(genome)
+
+# Computing ORF-lengths
+orf.lengths <- orfLength(orf.table)
+
+# Filtering to retrieve the LORFs only
+lorf.table <- lorfs(orf.table)
+lorf.lengths <- orfLength(lorf.table)
+
+# ...and compressing the genome file again...
+xzcompress(file.path(extdata,genome.file))
+}
 
 }
 \seealso{

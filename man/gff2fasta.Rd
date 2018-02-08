@@ -26,7 +26,29 @@ the sequences from \code{genome$Sequence}. Every Seqid in the \code{gff.table}
 must match the first token in one of the \code{genome$Header} texts.
 }
 \examples{
-Mer her
+\dontrun{
+# Using two files in this package
+extdata <- file.path(path.package("micropan"),"extdata")
+gff.file <- "Mpneumoniae_309_prodigal.gff"
+genome.file <- "Mpneumoniae_309_genome.fsa"
+
+# We need to uncompress them first...
+xzuncompress(file.path(extdata,paste(gff.file,".xz",sep="")))
+xzuncompress(file.path(extdata,paste(genome.file,".xz",sep="")))
+
+# Reading
+gff.table <- readGFF(file.path(extdata,gff.file))
+genome <- readFasta(file.path(extdata,genome.file))
+
+# Retrieving sequences
+fasta.obj <- gff2fasta(gff.table,genome)
+summary(fasta.obj)
+plot(fasta.obj)
+
+# ...and compressing the files again...
+xzcompress(file.path(extdata.path,gff.file))
+xzcompress(file.path(extdata.path,genome.file))
+}
 
 }
 \seealso{

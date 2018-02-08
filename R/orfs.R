@@ -40,14 +40,28 @@
 #' @seealso \code{\link{readGFF}}, \code{\link{gff2fasta}}, \code{\link{lorfs}}.
 #' 
 #' @examples
-#' # Reading a small genome into R (uncompressing it first):
-#' extdata.path <- file.path(path.package("micropan"),"extdata")
-#' pth <- lapply( file.path( extdata.path, "Mpneumoniae_309_genome.fsa.xz" ), xzuncompress )  # uncompressing file...
-#' genome <- readFasta( file.path( extdata.path, "Mpneumoniae_309_genome.fsa" ) )
-#' pth <- lapply( file.path( extdata.path, "Mpneumoniae_309_genome.fsa" ), xzcompress )   # ...and compressing it again...
+#' \dontrun{
+#' # Using a genome file in this package
+#' extdata <- file.path(path.package("micropan"),"extdata")
+#' genome.file <- "Mpneumoniae_309_genome.fsa"
 #' 
-#' # Finding ORFs
-#' gff.tab <- findOrfs( genome )
+#' # We need to uncompress them first...
+#' xzuncompress(file.path(extdata,paste(genome.file,".xz",sep="")))
+#' 
+#' # Reading into R and finding orfs
+#' genome <- readFasta(file.path(extdata,genome.file))
+#' orf.table <- findOrfs(genome)
+#' 
+#' # Computing ORF-lengths
+#' orf.lengths <- orfLength(orf.table)
+#' 
+#' # Filtering to retrieve the LORFs only
+#' lorf.table <- lorfs(orf.table)
+#' lorf.lengths <- orfLength(lorf.table)
+#' 
+#' # ...and compressing the genome file again...
+#' xzcompress(file.path(extdata,genome.file))
+#' }
 #' 
 #' @useDynLib micropan
 #' @importFrom Rcpp evalCpp
@@ -80,7 +94,7 @@ findOrfs <- function( genome, circular=F ){
                            Source=rep( "micropan::findOrfs", nr ),
                            Type= rep( "ORF", nr ),
                            Start=orf.table$Start,
-                           End=orf.table$Stop,
+                           End=orf.table$End,
                            Score=rep( NA, nr ),
                            Strand=dStrand,
                            Phase=rep( 0, nr ),
@@ -88,7 +102,6 @@ findOrfs <- function( genome, circular=F ){
                            stringsAsFactors=F )
   return( gff.table )
 }
-
 
 
 #' @name orfLength
@@ -104,14 +117,14 @@ findOrfs <- function( genome, circular=F ){
 #' 
 #' @author Lars Snipen and Kristian Hovde Liland.
 #' 
-#' @seealso \code{\link{findOrfs}}.
+#' @seealso \code{\link{findOrfs}}, \code{\link{lorfs}}.
 #' 
-#' @examples Mer her
+#' @examples # See the example in the Help-file for findOrfs.
 #' 
 #' @export orfLength
 #' 
 orfLength <- function( gff.table ){
-  return( (abs( gff.table$Start - gff.table$Stop ) - 2)/3 )
+  return( (abs( gff.table$Start - gff.table$End ) - 2)/3 )
 }
 
 
@@ -134,7 +147,7 @@ orfLength <- function( gff.table ){
 #' 
 #' @seealso \code{\link{readGFF}}, \code{\link{findOrfs}}.
 #' 
-#' @examples Mer her
+#' @examples # See the example in the Help-file for findOrfs.
 #' 
 #' @export lorfs
 #' 
@@ -143,9 +156,9 @@ lorfs <- function( gff.table ){
   ot <- gff.table[(gff.table$Seqid == ugs[1]),]
   ot.p <- ot[(ot$Strand > 0),]
   ot.p <- ot.p[order( ot.p$Start ),]
-  ot.p <- ot.p[(!duplicated( ot.p$Stop )),]
+  ot.p <- ot.p[(!duplicated( ot.p$End )),]
   ot.n <- ot[(ot$Strand < 0),]
-  ot.n <- ot.n[order( ot.n$Stop, decreasing=T ),]
+  ot.n <- ot.n[order( ot.n$End, decreasing=T ),]
   ot.n <- ot.n[(!duplicated( ot.n$Start )),]
   os <- rbind( ot.p, ot.n )
   
@@ -154,9 +167,9 @@ lorfs <- function( gff.table ){
       ot <- gff.table[(gff.table$Seqid == ugs[i]),]
       ot.p <- ot[(ot$Strand > 0),]
       ot.p <- ot.p[order( ot.p$Start ),]
-      ot.p <- ot.p[(!duplicated( ot.p$Stop )),]
+      ot.p <- ot.p[(!duplicated( ot.p$End )),]
       ot.n <- ot[(ot$Strand < 0),]
-      ot.n <- ot.n[order( ot.n$Stop, decreasing=T ),]
+      ot.n <- ot.n[order( ot.n$End, decreasing=T ),]
       ot.n <- ot.n[(!duplicated( ot.n$Start)),]
       os <- rbind( os, ot.p, ot.n )
     }
@@ -181,7 +194,7 @@ circularize <- function( ott, NC ){
   ugs <- unique( ott$Seqid )
   # otn is the NEW table, where we have spliced the ORFs truncated at each end
   # It is impossible to know how many ORF we will end up with!
-  otn <- data.frame( Seqid=NULL, Start=NULL, Stop=NULL, Strand=NULL, Truncated=NULL, stringsAsFactors=F )
+  otn <- data.frame( Seqid=NULL, Start=NULL, End=NULL, Strand=NULL, Truncated=NULL, stringsAsFactors=F )
   for( i in 1:length(ugs) ){
     idx <- which( tags == ugs[i] )                # ugs[i] is genome sequence idx
     ottg <- ott[which( ott$Seqid == ugs[i] ),]    # orfs from sequence idx
@@ -192,7 +205,7 @@ circularize <- function( ott, NC ){
       if( (ni > 0) & (ni < nr) ){          # we need some with truncated starts, but also some
                                            # with truncated stops!
         ottg1 <- ottg[ixd,]                # those with truncated starts
-        nb1 <- ottg1$Stop                  # number of bases from origin to start
+        nb1 <- ottg1$End                  # number of bases from origin to start
         ottg2 <- ottg[-ixd,]               # those with truncated stops
         nb2 <- NC[idx] - ottg2$Start + 1   # number of bases before origin
         for( j in 1:length( nb1 ) ){
@@ -202,7 +215,7 @@ circularize <- function( ott, NC ){
             otn <- rbind( otn,
                           data.frame( Seqid     = rep( ugs[i], nd ),
                                       Start     = ottg2$Start[idd],
-                                      Stop      = NC[idx]+rep( ottg1$Stop[j], nd ),
+                                      End      = NC[idx]+rep( ottg1$End[j], nd ),
                                       Strand    = ottg2$Strand[idd],
                                       Truncated = rep( 0, nd ),
                                       stringsAsFactors=F ) )

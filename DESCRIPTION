@@ -2,18 +2,18 @@ Package: micropan
 Type: Package
 Title: Microbial Pan-Genome Analysis
 Version: 1.2
-Date: 2017-08-01
+Date: 2018-02-08
 Author: Lars Snipen and Kristian Hovde Liland
 Maintainer: Lars Snipen <lars.snipen@nmbu.no>
 Description: A collection of functions for computations and visualizations of microbial pan-genomes.
 License: GPL-2
 Depends:
-    R (>= 3.0.0),
+    R (>= 3.4.0),
     igraph,
     microseq
 Imports:
-    Rcpp (>= 0.11.1)
-LinkingTo: Rcpp (>= 0.11.1), BH
+    Rcpp (>= 0.12.15)
+LinkingTo: Rcpp (>= 0.12.15), BH
 LazyData: FALSE
 ZipData: TRUE
 RoxygenNote: 6.0.1

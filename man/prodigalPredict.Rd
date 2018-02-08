@@ -2,20 +2,19 @@
 % Please edit documentation in R/prodigal.R
 \name{prodigalPredict}
 \alias{prodigalPredict}
+\alias{prodigal}
 \title{Gene predictions using Prodigal}
 \usage{
-prodigalPredict(genome.file, prot.file, nuc.file = NULL, closed.ends = TRUE,
-  motif.scan = FALSE)
+prodigal(genome.file, prot.file = NULL, nuc.file = NULL,
+  closed.ends = TRUE, motif.scan = FALSE)
 }
 \arguments{
 \item{genome.file}{Name of a FASTA formatted file with all the DNA sequences for a genome (chromosomes,
 plasmids, contigs etc.).}
 
-\item{prot.file}{Name of output file. Predicted protein sequences will be written to this file, in a
-FASTA format.}
+\item{prot.file}{If specified, amino acid sequence of each protein is written to this FASTA file.}
 
-\item{nuc.file}{If specified, nucleotide version of each protein is written to this file (default
-\code{NULL}).}
+\item{nuc.file}{If specified, nucleotide sequence of each protein is written to this FASTA file.}
 
 \item{closed.ends}{Logical, if \code{TRUE} genes are not allowed to run off edges (default \code{TRUE}).}
 
@@ -23,12 +22,12 @@ FASTA format.}
 \code{FALSE}).}
 }
 \value{
-The call to Prodigal produces a FASTA formatted file with predicted protein sequences, and
-if \samp{nuc.file} is specified, a similar file with nucleotide sequences. See \code{\link[microseq]{readFasta}}
-for how to read such files into R.
+A \code{gff.table} with the metadata for all predicted genes (see \code{\link{readGFF}}). If
+\code{prot.file} is specified, a FASTA formatted file with predicted protein sequences are also produced. If
+\code{nuc.file} is specified, a similar file with nucleotide sequences is also produced.
 }
 \description{
-Finds coding genes in a genome, using the Prodigal software, and outputs them as a FASTA file.
+Finds coding genes in a genome using the Prodigal software.
 }
 \details{
 This function sets up a call to the software Prodigal (Hyatt et al, 2009). This software is
@@ -38,32 +37,34 @@ pan-genomic analyses.
 }
 \note{
 The Prodigal software must be installed on the system for this function to work, i.e. the command 
-\samp{system("prodigal")} (no version numbers!) must be recognized as a valid command if you run it 
+\samp{system("prodigal -h")} (no version numbers!) must be recognized as a valid command if you run it 
 in the Console window.
 }
 \examples{
 \dontrun{
-# Using a small genome file in this package
+# Using a genome file in this package
+extdata <- file.path(path.package("micropan"),"extdata")
+genome.file <- "Mpneumoniae_309_genome.fsa"
+
 # We need to uncompress it first...
-extdata.path <- file.path(path.package("micropan"),"extdata")
-filenames <- "Mpneumoniae_309_genome.fsa"
-pth <- lapply( file.path( extdata.path, paste( filenames, ".xz", sep="" ) ), xzuncompress )
+xzuncompress(file.path(extdata,paste(genome.file,".xz",sep="")))
 
-# Calling Prodigal, and using a similar name (_genome replaced by _protein) in output
-prodigalPredict( file.path(extdata.path,filenames), gsub("_genome","_protein",filenames) )
+# Calling Prodigal, and writing all predicted proteins to a file as well
+gff.table <- prodigal(file.path(extdata,genome.file),
+                      prot.file=gsub("_genome","_protein",genome.file))
 
-# ...and compressing the genome-file again...
-pth <- lapply( file.path( extdata.path, filenames ), xzcompress )
+# ...and compressing the genome file again...
+xzcompress(file.path(extdata,genome.file))
 }
 
 }
 \references{
-Hyatt, D., Chen, G., LoCascio, P.F., Land, M.L., Larimer, F.W., Hauser, L.J. (2009).
+Hyatt, D., Chen, G., LoCascio, P.F., Land, M.L., Larimer, F.W., Hauser, L.J. (2010).
 Prodigal: prokaryotic gene recognition and translation initiation site identification, BMC Bioinformatics,
 11:119.
 }
 \seealso{
-\code{\link{entrezDownload}}.
+\code{\link{readGFF}}.
 }
 \author{
 Lars Snipen and Kristian Hovde Liland.

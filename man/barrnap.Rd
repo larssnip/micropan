@@ -24,25 +24,29 @@ Locating all rRNA genes in genomic DNA using the barrnap software.
 The external software barrnap is used to scan through a prokaryotic genome to detect the
 rRNA genes (5S, 16S, 23S). This free software can be installed from https://github.com/tseemann/barrnap.
 }
+\note{
+The barrnap software must be installed on the system for this function to work, i.e. the command
+\samp{system("barrnap --help")} must be recognized as a valid command if you run it in the Console window.
+}
 \examples{
-# Using a genome FASTA file in this package.
-# We need to uncompress it first...
 \dontrun{
-extdata.path <- file.path(path.package("micropan"),"extdata")
-genome.file <- xzuncompress(file.path(extdata.path, "Mpneumoniae_309_genome.fsa.xz"))
+# Using a genome file in this package.
+extdata <- file.path(path.package("micropan"),"extdata")
+genome.file <- "Mpneumoniae_309_genome.fsa"
 
-#...searching for rRNA sequences...
-ssu.table <- barrnap( genome.file )
+# We need to uncompress it first...
+xzuncompress(file.path(extdata,paste(genome.file,".xz",sep="")))
 
-# Inspecting the hits
-print(ssu.table)
+# Searching for rRNA sequences, and inspecting
+gff.table <- barrnap(file.path(extdata,genome.file))
+print(gff.table)
 
 # Retrieving the sequences
-genome <- readFasta(genome.file)
-rRNA.fasta <- gff2fasta(ssu.table, genome)
+genome <- readFasta(file.path(extdata,genome.file))
+rRNA.fasta <- gff2fasta(ssu.table,genome)
 
 # ...and compressing the genome FASTA file again...
-genome.file.xz <- xzcompress(genome.file)
+xzcompress(file.path(extdata,genome.file))
 }
 
 }

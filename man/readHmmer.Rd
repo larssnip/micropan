@@ -34,7 +34,7 @@ The function reads a text file produced by \code{\link{hmmerScan}}. By specifyin
 should be turned off (FALSE) if you scan against your own database where accession numbers are lacking.
 }
 \examples{
-# See the example in the Help-file for dClust
+# See the example in the Help-file for dClust.
 
 }
 \seealso{

@@ -40,7 +40,7 @@
 #' Statistical Significance Estimation. PLoS Computational Biology, 4(5).
 #' 
 #' @note The HMMER3 software must be installed on the system for this function to work, i.e. the command
-#' \samp{system("hmmscan")} must be recognized as a valid command if you run it in the Console window.
+#' \samp{system("hmmscan -h")} must be recognized as a valid command if you run it in the Console window.
 #' 
 #' @author Lars Snipen and Kristian Hovde Liland.
 #' 
@@ -48,29 +48,26 @@
 #' 
 #' @examples 
 #' \dontrun{
-#' # Using a FASTA file in the micropan package
-#' # We need to uncompress it first...
-#' extdata.path <- file.path(path.package("micropan"),"extdata")
-#' filenames <- "Mpneumoniae_309_GID2.fsa"
-#' pth <- lapply( file.path( extdata.path, paste( filenames, ".xz", sep="" ) ), xzuncompress )
+#' # Using two files in the micropan package
+#' extdata <- file.path(path.package("micropan"),"extdata")
+#' prot.file <- "Mpneumoniae_309_GID2.fsa"   # FASTA file with proteins
+#' db <- "microfam0.hmm"                     # tiny HMM database
 #' 
-#' # Using a miniature pHMM database in the micropan package
-#' # We need to uncompress its datafiles first...
-#' db <- "microfam0.hmm"
-#' pth <- lapply( file.path( extdata.path,
-#'    paste( db, c(".h3f.xz",".h3i.xz",".h3m.xz",".h3p.xz"), sep="" ) ), xzuncompress )
-#'   
-#' # ...and scanning the FASTA-file against microfam0...
-#' hmmerScan(in.files=file.path(extdata.path,filenames), 
-#'    db=file.path(extdata.path,db),out.folder=".")
+#' # We need to uncompress them first...
+#' xzuncompress(file.path(extdata,paste(prot.file,".xz",sep="")))
+#' pth <- lapply(file.path(extdata,paste(db,
+#'               c(".h3f.xz",".h3i.xz",".h3m.xz",".h3p.xz"),sep="")),xzuncompress)
+#' 
+#' # Scanning the FASTA-file against microfam0...
+#' hmmerScan(in.files=file.path(extdata,prot.file),db=file.path(extdata,db),out.folder=".")
 #'   
 #' # ...and compressing all files again...
-#' pth <- lapply( file.path( extdata.path, filenames ), xzcompress )
-#' pth <- lapply( file.path( extdata.path,
-#'    paste( db, c(".h3f",".h3i",".h3m",".h3p"), sep="" ) ), xzcompress )
+#' xzcompress(file.path(extdata,prot.file))
+#' pth <- lapply(file.path(extdata,paste(db,c(".h3f",".h3i",".h3m",".h3p"),sep="")),xzcompress)
 #' }
 #' 
-#' @export
+#' @export hmmerScan
+#' 
 hmmerScan <- function( in.files, db, out.folder, threads=0, verbose=TRUE ){
   if( available.external( "hmmer" ) ){
     basic <- paste( "hmmscan -o delete_me.txt --cut_ga --noali --cpu", threads )
@@ -82,7 +79,6 @@ hmmerScan <- function( in.files, db, out.folder, threads=0, verbose=TRUE ){
       if( !(rname %in% res.files) ){
         if( verbose ) cat( "hmmerScan: Scanning", in.files[i], "...\n" )
         command <- paste( basic, "--domtblout", file.path( out.folder, rname ), db, in.files[i]  )
-        print( command )
         system( command )
         file.remove( "delete_me.txt" )
       }
@@ -120,7 +116,7 @@ hmmerScan <- function( in.files, db, out.folder, threads=0, verbose=TRUE ){
 #' 
 #' @seealso \code{\link{hmmerScan}}, \code{\link{hmmerCleanOverlap}}, \code{\link{dClust}}.
 #' 
-#' @examples # See the example in the Help-file for dClust
+#' @examples # See the example in the Help-file for dClust.
 #' 
 #' @export
 readHmmer <- function( hmmer.file, e.value=1, use.acc=TRUE ){

@@ -14,8 +14,7 @@
 # Reading the genome.table
 library(micropan)
 options(stringsAsFactors=FALSE)
-genome.table <- read.table("data/Mpneumoniae.txt", sep="\t",
-                           header=TRUE)
+genome.table <- read.table("data/Mpneumoniae.txt", sep="\t",header=TRUE)
 
 
 
@@ -39,9 +38,9 @@ for(i in 5:7){
 # Calling genes by Prodigal
 for( i in 1:dim(genome.table)[1] ){
   cat("Predicting genes in", genome.table$File[i], "...\n")
-  in.file <- file.path("data/genomes", genome.table$File[i])
-  out.file <- file.path("data/proteins", genome.table$File[i])
-  prodigalPredict(in.file, out.file)
+  genome.file <- file.path("data/genomes", genome.table$File[i])
+  prot.file <- file.path("data/proteins", genome.table$File[i])
+  gff.table <- prodigal(genome.file, prot.file)
 }
 
 

@@ -63,7 +63,8 @@
 #' @importFrom igraph graph.edgelist clusters degree
 #' @importFrom stats hclust as.dist cutree
 #' 
-#' @export
+#' @export bClust
+#' 
 bClust <- function( dist.table, linkage="single", threshold=1.0 ){
   cat( "bClust:\n" )
   linknum <- grep( linkage, c( "single", "average", "complete" ) )
@@ -166,17 +167,16 @@ bClust <- function( dist.table, linkage="single", threshold=1.0 ){
 #' @examples
 #' \dontrun{
 #' # Loading distance data in the micropan package
-#' data(list=c("Mpneumoniae.blast.distances","Mpneumoniae.blast.clustering"),
-#' package="micropan")
+#' data(list=c("Mpneumoniae.blast.distances","Mpneumoniae.blast.clustering"),package="micropan")
 #' 
 #' # Finding orthologs
-#' is.ortholog <- isOrtholog(Mpneumoniae.blast.clustering,
-#' Mpneumoniae.blast.distances)
+#' is.ortholog <- isOrtholog(Mpneumoniae.blast.clustering,Mpneumoniae.blast.distances)
 #' }
 #' 
 #' @importFrom microseq gregexpr
 #' 
-#' @export
+#' @export isOrtholog
+#' 
 isOrtholog <- function( clustering, dist.table ){
   aa <- dist.table$Sequence.A
   bb <- dist.table$Sequence.B
