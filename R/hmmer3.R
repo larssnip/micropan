@@ -50,8 +50,8 @@
 #' \dontrun{
 #' # Using two files in the micropan package
 #' extdata <- file.path(path.package("micropan"),"extdata")
-#' prot.file <- "Mpneumoniae_309_GID2.fsa"   # FASTA file with proteins
-#' db <- "microfam0.hmm"                     # tiny HMM database
+#' prot.file <- "Example_proteins_GID1.fasta" # FASTA file with proteins
+#' db <- "microfam.hmm"                       # tiny HMM database
 #' 
 #' # We need to uncompress them first...
 #' xzuncompress(file.path(extdata,paste(prot.file,".xz",sep="")))
@@ -63,7 +63,8 @@
 #'   
 #' # ...and compressing all files again...
 #' xzcompress(file.path(extdata,prot.file))
-#' pth <- lapply(file.path(extdata,paste(db,c(".h3f",".h3i",".h3m",".h3p"),sep="")),xzcompress)
+#' pth <- lapply(file.path(extdata,paste(db,
+#'               c(".h3f",".h3i",".h3m",".h3p"),sep="")),xzcompress)
 #' }
 #' 
 #' @export hmmerScan
@@ -135,7 +136,14 @@ readHmmer <- function( hmmer.file, e.value=1, use.acc=TRUE ){
   start <- as.numeric( sapply( lst, function(x){ x[18] } ) )
   stopp <- as.numeric( sapply( lst, function(x){ x[19] } ) )
   desc <- sapply( lst, function(x){ paste( x[23:length( x )], collapse=" " ) } )
-  hmmer.table <- data.frame( Query=query, Hit=hit, Evalue=ievalue, Score=score, Start=start, Stop=stopp, Description=desc, stringsAsFactors=F )
+  hmmer.table <- data.frame( Query=query,
+                             Hit=hit,
+                             Evalue=ievalue,
+                             Score=score,
+                             Start=start,
+                             Stop=stopp,
+                             Description=desc,
+                             stringsAsFactors=F )
   hmmer.table <- hmmer.table[which( hmmer.table$Evalue <= e.value ),]
   return( hmmer.table )
 }

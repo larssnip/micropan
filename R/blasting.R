@@ -66,12 +66,14 @@
 #' \dontrun{
 #' # Using protein files in this package
 #' extdata <- file.path(path.package("micropan"),"extdata")
-#' prot.files <- c("Mpneumoniae_M129_GID1.fsa","Mpneumoniae_309_GID2.fsa","Mpneumoniae_FH_GID3.fsa")
+#' prot.files <- c("Example_proteins_GID1.fasta",
+#'                 "Example_proteins_GID2.fasta",
+#'                 "Example_proteins_GID3.fasta")
 #' 
 #' # We need to uncompress them first...
 #' pth <- lapply(file.path(extdata,paste(prot.files,".xz",sep="")),xzuncompress)
 #' 
-#' # Blasting all versus all, this will take some minute(s)!
+#' # Blasting all versus all...
 #' blastAllAll(file.path(extdata,prot.files),out.folder=".")
 #' 
 #' # ...and compressing the files again...
@@ -104,6 +106,7 @@ blastAllAll <- function( prot.files, out.folder, e.value=1, job=1, threads=1, ve
     file.remove( paste( "blastDB", job, ".pin", sep="" ) )
     file.remove( paste( "blastDB", job, ".phr", sep="" ) )
     file.remove( paste( "blastDB", job, ".psq", sep="" ) )
+    file.remove( "log.txt", "log.txt.perf" )
     return( "done" )
   }
 }

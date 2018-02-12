@@ -2,19 +2,7 @@
 
 ## Non-exported function to gracefully fail when external dependencies are missing.
 available.external <- function( what ){
-  if( what=="barrnap" ){
-    chr <- NULL
-    try( chr <- system('barrnap --help', intern=TRUE), silent=TRUE )
-    if( is.null( chr ) ){
-      stop( paste('barrnap was not found by R.',
-                  'Please install barrnap from: https://github.com/tseemann/barrnap',
-                  'After installation, re-start R and make sure barrnap can be run from R by',
-                  'the command \'system("barrnap --help")\'.', sep = '\n'))
-      return(FALSE)
-    } else {
-      return(TRUE)
-    }
-  } else if( what=="prodigal" ){
+  if( what=="prodigal" ){
     chr <- NULL
     try( chr <- system('prodigal -h', intern=TRUE), silent=TRUE )
     if( is.null( chr ) ){

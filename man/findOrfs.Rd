@@ -13,7 +13,8 @@ findOrfs(genome, circular = F)
 }
 \value{
 This function returns a \code{gff.table}, which is simply a \code{data.frame} with columns
-adhering to the format specified by the GFF3 format, see \code{\link{readGFF}}
+adhering to the format specified by the GFF3 format, see \code{\link{readGFF}}. If you want to retrieve
+the ORF sequences, use \code{\link{gff2fasta}}.
 }
 \description{
 Finds all ORFs in prokaryotic genome sequences.
@@ -48,7 +49,7 @@ a Start cannot be larger than the corresponding End.
 \dontrun{
 # Using a genome file in this package
 extdata <- file.path(path.package("micropan"),"extdata")
-genome.file <- "Mpneumoniae_309_genome.fsa"
+genome.file <- "Example_genome.fasta"
 
 # We need to uncompress them first...
 xzuncompress(file.path(extdata,paste(genome.file,".xz",sep="")))

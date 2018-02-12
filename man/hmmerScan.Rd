@@ -57,8 +57,8 @@ The HMMER3 software must be installed on the system for this function to work, i
 \dontrun{
 # Using two files in the micropan package
 extdata <- file.path(path.package("micropan"),"extdata")
-prot.file <- "Mpneumoniae_309_GID2.fsa"   # FASTA file with proteins
-db <- "microfam0.hmm"                     # tiny HMM database
+prot.file <- "Example_proteins_GID1.fasta" # FASTA file with proteins
+db <- "microfam.hmm"                       # tiny HMM database
 
 # We need to uncompress them first...
 xzuncompress(file.path(extdata,paste(prot.file,".xz",sep="")))
@@ -70,7 +70,8 @@ hmmerScan(in.files=file.path(extdata,prot.file),db=file.path(extdata,db),out.fol
   
 # ...and compressing all files again...
 xzcompress(file.path(extdata,prot.file))
-pth <- lapply(file.path(extdata,paste(db,c(".h3f",".h3i",".h3m",".h3p"),sep="")),xzcompress)
+pth <- lapply(file.path(extdata,paste(db,
+              c(".h3f",".h3i",".h3m",".h3p"),sep="")),xzcompress)
 }
 
 }

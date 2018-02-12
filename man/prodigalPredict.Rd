@@ -44,7 +44,7 @@ in the Console window.
 \dontrun{
 # Using a genome file in this package
 extdata <- file.path(path.package("micropan"),"extdata")
-genome.file <- "Mpneumoniae_309_genome.fsa"
+genome.file <- "Example_genome.fasta"
 
 # We need to uncompress it first...
 xzuncompress(file.path(extdata,paste(genome.file,".xz",sep="")))

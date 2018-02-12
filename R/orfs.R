@@ -32,7 +32,8 @@
 #' a Start cannot be larger than the corresponding End.
 #' 
 #' @return This function returns a \code{gff.table}, which is simply a \code{data.frame} with columns
-#' adhering to the format specified by the GFF3 format, see \code{\link{readGFF}}
+#' adhering to the format specified by the GFF3 format, see \code{\link{readGFF}}. If you want to retrieve
+#' the ORF sequences, use \code{\link{gff2fasta}}.
 #' 
 #' 
 #' @author Lars Snipen and Kristian Hovde Liland.
@@ -43,7 +44,7 @@
 #' \dontrun{
 #' # Using a genome file in this package
 #' extdata <- file.path(path.package("micropan"),"extdata")
-#' genome.file <- "Mpneumoniae_309_genome.fsa"
+#' genome.file <- "Example_genome.fasta"
 #' 
 #' # We need to uncompress them first...
 #' xzuncompress(file.path(extdata,paste(genome.file,".xz",sep="")))
@@ -141,11 +142,12 @@ orfLength <- function( gff.table ){
 #' i.e. the ORF starting at the most upstream start-codon matching the stop-codon.
 #' 
 #' @return A \code{gff.table} with a subset of the rows of the argument \code{gff.table}. 
-#' After this filtering the Type variable in \code{gff.table} is changed to \code{"LORF"}.
+#' After this filtering the Type variable in \code{gff.table} is changed to \code{"LORF"}. If you want to
+#' retirve the LORF sequences, use \code{\link{gff2fasta}}.
 #' 
 #' @author Lars Snipen and Kristian Hovde Liland.
 #' 
-#' @seealso \code{\link{readGFF}}, \code{\link{findOrfs}}.
+#' @seealso \code{\link{readGFF}}, \code{\link{findOrfs}}, \code{\link{gff2fasta}}.
 #' 
 #' @examples # See the example in the Help-file for findOrfs.
 #' 
@@ -154,10 +156,10 @@ orfLength <- function( gff.table ){
 lorfs <- function( gff.table ){
   ugs <- unique( gff.table$Seqid )
   ot <- gff.table[(gff.table$Seqid == ugs[1]),]
-  ot.p <- ot[(ot$Strand > 0),]
+  ot.p <- ot[(ot$Strand == "+"),]
   ot.p <- ot.p[order( ot.p$Start ),]
   ot.p <- ot.p[(!duplicated( ot.p$End )),]
-  ot.n <- ot[(ot$Strand < 0),]
+  ot.n <- ot[(ot$Strand == "-"),]
   ot.n <- ot.n[order( ot.n$End, decreasing=T ),]
   ot.n <- ot.n[(!duplicated( ot.n$Start )),]
   os <- rbind( ot.p, ot.n )
@@ -165,10 +167,10 @@ lorfs <- function( gff.table ){
   if( length( ugs ) > 1 ){
     for( i in 2:length( ugs ) ){
       ot <- gff.table[(gff.table$Seqid == ugs[i]),]
-      ot.p <- ot[(ot$Strand > 0),]
+      ot.p <- ot[(ot$Strand == "+"),]
       ot.p <- ot.p[order( ot.p$Start ),]
       ot.p <- ot.p[(!duplicated( ot.p$End )),]
-      ot.n <- ot[(ot$Strand < 0),]
+      ot.n <- ot[(ot$Strand == "-"),]
       ot.n <- ot.n[order( ot.n$End, decreasing=T ),]
       ot.n <- ot.n[(!duplicated( ot.n$Start)),]
       os <- rbind( os, ot.p, ot.n )

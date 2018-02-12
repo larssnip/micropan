@@ -29,8 +29,8 @@ must match the first token in one of the \code{genome$Header} texts.
 \dontrun{
 # Using two files in this package
 extdata <- file.path(path.package("micropan"),"extdata")
-gff.file <- "Mpneumoniae_309_prodigal.gff"
-genome.file <- "Mpneumoniae_309_genome.fsa"
+gff.file <- "Example.gff"
+genome.file <- "Example_genome.fasta"
 
 # We need to uncompress them first...
 xzuncompress(file.path(extdata,paste(gff.file,".xz",sep="")))
@@ -46,8 +46,8 @@ summary(fasta.obj)
 plot(fasta.obj)
 
 # ...and compressing the files again...
-xzcompress(file.path(extdata.path,gff.file))
-xzcompress(file.path(extdata.path,genome.file))
+xzcompress(file.path(extdata,gff.file))
+xzcompress(file.path(extdata,genome.file))
 }
 
 }

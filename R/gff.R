@@ -23,8 +23,8 @@
 #' \dontrun{
 #' # Using two files in this package
 #' extdata <- file.path(path.package("micropan"),"extdata")
-#' gff.file <- "Mpneumoniae_309_prodigal.gff"
-#' genome.file <- "Mpneumoniae_309_genome.fsa"
+#' gff.file <- "Example.gff"
+#' genome.file <- "Example_genome.fasta"
 #' 
 #' # We need to uncompress them first...
 #' xzuncompress(file.path(extdata,paste(gff.file,".xz",sep="")))
@@ -40,12 +40,13 @@
 #' plot(fasta.obj)
 #' 
 #' # ...and compressing the files again...
-#' xzcompress(file.path(extdata.path,gff.file))
-#' xzcompress(file.path(extdata.path,genome.file))
+#' xzcompress(file.path(extdata,gff.file))
+#' xzcompress(file.path(extdata,genome.file))
 #' }
 #' 
 #' @useDynLib micropan
-#' @importFrom Rcpp evalCpp microseq reverseComplement
+#' @importFrom Rcpp evalCpp
+#' @importFrom microseq reverseComplement
 #' 
 #' @export gff2fasta
 #' 
@@ -59,6 +60,9 @@ gff2fasta <- function( gff.table, genome ){
   fobj <- data.frame( Header=gffSignature( gff.table ), 
                       Sequence=rep( "", n ),
                       stringsAsFactors=F )
+  strnd <- rep( 1, n )
+  strnd[gff.table$Strand=="-"] <- -1
+  gff.table$Strand <- strnd
   for( i in 1:length( tagz ) ){
     idx <- which( gff.table$Seqid == tagz[i] )
     seq <- extractSeq( genome$Sequence[i], 
@@ -80,7 +84,7 @@ gff2fasta <- function( gff.table, genome ){
 #' 
 #' @description Making a signature text from \code{gff.table} data.
 #' 
-#' @param gff.tableat A \code{gff.table} (\code{data.frame}) with genomic features information.
+#' @param gff.table A \code{gff.table} (\code{data.frame}) with genomic features information.
 #' 
 #' @details For each row in \code{gff.table} a text is created by pasting these
 #' data together, adding some explanatory text. This function is used by \code{link{gff2fasta}}
@@ -180,17 +184,34 @@ gffSignature <- function( gff.table ){
 #' @export readGFF writeGFF
 #' 
 readGFF <- function( in.file ){
-  gff.table <- read.table( in.file, sep="\t", header=F,
-                           stringsAsFactors=F, comment.char="#" )
-  if( ncol( gff.table ) != 9 ) stop( "File", in.file, "does not contain data in GFF3 format" )
-  colnames( gff.table ) <- c( "Seqid", "Source", "Type", "Start", "End", "Score", "Strand", "Phase", "Attributes" )
-  w <- options()$warn
-  options( warn=-1 )
-  gff.table$Start <- as.numeric( gff.table$Start )
-  gff.table$End <- as.numeric( gff.table$End )
-  gff.table$Score <- as.numeric( gff.table$Score )
-  gff.table$Phase <- as.numeric( gff.table$Phase )
-  options(warn=w)
+  fil <- file( in.file, open="rt" )
+  lines <- readLines( fil, n=2 )
+  close( fil )
+  if( length( lines ) > 1 ){
+    gff.table <- read.table( in.file, sep="\t", header=F,
+                             stringsAsFactors=F, comment.char="#" )
+    if( ncol( gff.table ) != 9 ) stop( "File", in.file, "does not contain data in GFF3 format" )
+    colnames( gff.table ) <- c( "Seqid", "Source", "Type", "Start", "End", "Score", "Strand", "Phase", "Attributes" )
+    w <- options()$warn
+    options( warn=-1 )
+    gff.table$Start <- as.numeric( gff.table$Start )
+    gff.table$End <- as.numeric( gff.table$End )
+    gff.table$Score <- as.numeric( gff.table$Score )
+    gff.table$Phase <- as.numeric( gff.table$Phase )
+    options(warn=w)
+  } else {
+    gff.table <- data.frame( "Seqid"=NULL,
+                             "Source"=NULL,
+                             "Type"=NULL,
+                             "Start"=NULL,
+                             "End"=NULL,
+                             "Score"=NULL,
+                             "Strand"=NULL,
+                             "Phase"=NULL,
+                             "Attributes"=NULL,
+                             stringsAsFactors=F )
+  }
+
   return( gff.table )
 }
 writeGFF <- function( gff.table, out.file ){

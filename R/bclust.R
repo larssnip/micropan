@@ -89,11 +89,11 @@ bClust <- function( dist.table, linkage="single", threshold=1.0 ){
     })
     cat( "...found", sum( incomplete ), "incomplete clusters, splitting:\n")
     clustering <- clustering * 1000
-    inc <- which( incomplete )     #the incomplete clusters
+    inc <- which( incomplete )     # the incomplete clusters
     if( length( inc ) > 0 ){
       idx.inc <- which( cls$membership %in% inc )
       memnum <- cls$membership[idx.inc]
-      memtag <- utag[idx.inc] #is also sorted since idx.inc and utag are sorted according to utag
+      memtag <- utag[idx.inc] # is also sorted since idx.inc and utag are sorted according to utag
       idi <- which( (dt$Sequence.A %in% utag[idx.inc]) & (dt$Sequence.B %in% utag[idx.inc]) )
       aa <- dt$Sequence.A[idi]
       bb <- dt$Sequence.B[idi]
@@ -123,9 +123,10 @@ bClust <- function( dist.table, linkage="single", threshold=1.0 ){
     }
     cat( "\n" )
   }
-  cat( "...ended with", length( unique( clustering ) ), "clusters, largest cluster has", max( table( clustering ) ), "members\n" )
-  clustering <- sort( clustering )
-  return( clustering )
+  fclustering <- as.integer( factor( clustering ) )  # to get values 1,2,3,...
+  names( fclustering ) <- names( clustering )
+  cat( "...ended with", length( unique( fclustering ) ), "clusters, largest cluster has", max( table( fclustering ) ), "members\n" )
+  return( sort( fclustering ) )
 }
 
 

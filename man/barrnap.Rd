@@ -9,9 +9,9 @@ barrnap(genome.file, bacteria = TRUE, cpu = 1)
 \arguments{
 \item{genome.file}{A fasta-formatted file with the genome sequence(s).}
 
-\item{cpu}{Number of CPUs to use, default is 1.}
+\item{bacteria}{Logical, the genome is either a bacteria (default) or an archea.}
 
-\item{bacteria.}{Logical, the genome is either a bacteria (default) or an archea.}
+\item{cpu}{Number of CPUs to use, default is 1.}
 }
 \value{
 A \code{gff.table} (see \code{\link{readGFF}} for details) with one row for each detected
@@ -32,7 +32,7 @@ The barrnap software must be installed on the system for this function to work, 
 \dontrun{
 # Using a genome file in this package.
 extdata <- file.path(path.package("micropan"),"extdata")
-genome.file <- "Mpneumoniae_309_genome.fsa"
+genome.file <- "Example_genome.fasta"
 
 # We need to uncompress it first...
 xzuncompress(file.path(extdata,paste(genome.file,".xz",sep="")))
@@ -43,7 +43,7 @@ print(gff.table)
 
 # Retrieving the sequences
 genome <- readFasta(file.path(extdata,genome.file))
-rRNA.fasta <- gff2fasta(ssu.table,genome)
+rRNA.fasta <- gff2fasta(gff.table,genome)
 
 # ...and compressing the genome FASTA file again...
 xzcompress(file.path(extdata,genome.file))

@@ -4,7 +4,7 @@
 #' @description Locating all rRNA genes in genomic DNA using the barrnap software.
 #' 
 #' @param genome.file A fasta-formatted file with the genome sequence(s).
-#' @param bacteria. Logical, the genome is either a bacteria (default) or an archea.
+#' @param bacteria Logical, the genome is either a bacteria (default) or an archea.
 #' @param cpu Number of CPUs to use, default is 1.
 #' 
 #' @details The external software barrnap is used to scan through a prokaryotic genome to detect the
@@ -24,7 +24,7 @@
 #' \dontrun{
 #' # Using a genome file in this package.
 #' extdata <- file.path(path.package("micropan"),"extdata")
-#' genome.file <- "Mpneumoniae_309_genome.fsa"
+#' genome.file <- "Example_genome.fasta"
 #' 
 #' # We need to uncompress it first...
 #' xzuncompress(file.path(extdata,paste(genome.file,".xz",sep="")))
@@ -35,7 +35,7 @@
 #' 
 #' # Retrieving the sequences
 #' genome <- readFasta(file.path(extdata,genome.file))
-#' rRNA.fasta <- gff2fasta(ssu.table,genome)
+#' rRNA.fasta <- gff2fasta(gff.table,genome)
 #' 
 #' # ...and compressing the genome FASTA file again...
 #' xzcompress(file.path(extdata,genome.file))
@@ -44,11 +44,18 @@
 #' @export barrnap
 #' 
 barrnap <- function( genome.file, bacteria=TRUE, cpu=1 ){
-  if( available.external( "barrnap" ) ){
-    kingdom <- ifelse( bacteria, "bac", "arc" )
-    cmd <- paste( "barrnap --quiet --kingdom", kingdom, genome.file, "> barrnap.gff" )
-    system( cmd )
+  kingdom <- ifelse( bacteria, "bac", "arc" )
+  cmd <- paste( "barrnap --quiet --kingdom", kingdom, genome.file, "> barrnap.gff" )
+  chr <- NULL
+  try( chr <- system( cmd, intern=TRUE), silent=TRUE )
+  if( is.null( chr ) ){
+    stop( paste('barrnap was not found by R.',
+                'Please install barrnap from: https://github.com/tseemann/barrnap',
+                'After installation, re-start R and make sure barrnap can be run from R by',
+                'the command \'system("barrnap --help")\'.', sep = '\n'))
+  } else {
     gff.table <- readGFF( "barrnap.gff" )
+    file.remove( "barrnap.gff" )
     return( gff.table )
   }
 }

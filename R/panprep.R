@@ -46,14 +46,14 @@
 #' \dontrun{
 #' # Using a protein file in the micropan package
 #' extdata <- file.path(path.package("micropan"),"extdata")
-#' prot.file <- "Mpneumoniae_309_protein.fsa"
+#' prot.file <- "Example_proteins.fasta"
 #' 
 #' # We need to uncompress it first...
 #' xzuncompress(file.path(extdata,paste(prot.file,".xz",sep="")))
 #' 
 #' # Prepping it, using the GID.tag "GID123"
-#' panPrep(file.path(extdata,prot.file),GID.tag="GID123","Mpneumoniae_309.fsa") 
-#' # ...should produce a FASTA file named Mpneumoniae_309_GID123.fsa
+#' panPrep(file.path(extdata,prot.file),GID.tag="GID123","Example_proteins.fsa") 
+#' # ...should produce a FASTA file named Example_proteins_GID123.fsa
 #' 
 #' # ...and compress the input file again...
 #' xzcompress(file.path(extdata,prot.file))

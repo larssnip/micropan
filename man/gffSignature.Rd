@@ -7,7 +7,7 @@
 gffSignature(gff.table)
 }
 \arguments{
-\item{gff.tableat}{A \code{gff.table} (\code{data.frame}) with genomic features information.}
+\item{gff.table}{A \code{gff.table} (\code{data.frame}) with genomic features information.}
 }
 \value{
 A vector of texts, one for each row in \code{gff.table}.
