@@ -149,8 +149,7 @@ blastAllAll <- function( prot.files, out.folder, e.value=1, job=1, threads=1, ve
 #' # We need to uncompress it first...
 #' tf <- tempfile(fileext=".xz")
 #' s <- file.copy(blast.file,tf)
-#' xzuncompress(tf)
-#' tf <- sub(".xz","",tf)
+#' tf <- xzuncompress(tf)
 #' 
 #' #...then we can read it...
 #' blast.table <- readBlastTable(tf)

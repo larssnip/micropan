@@ -79,7 +79,8 @@
 #' summary(ppca.domains)
 #' plotLoadings(ppca.domains)
 #' 
-#' @export
+#' @export panpca
+#' 
 panpca <- function( pan.matrix, scale=0.0, weights=rep( 1, dim( pan.matrix )[2] ) ){
   if( (scale>1)|(scale<0) ){
     warning( "scale should be between 0.0 and 1.0, using scale=0.0" )

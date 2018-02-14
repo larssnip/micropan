@@ -44,7 +44,7 @@
 #' summary(genome)
 #' 
 #' # ...cleaning...
-#' file.remove(tf)
+#' s <- file.remove(tf)
 #' 
 #' @export entrezDownload
 #' 
@@ -102,7 +102,7 @@ entrezDownload <- function( accession, out.file, verbose=TRUE ){
 #' summary(genome)
 #' 
 #' # ...cleaning...
-#' file.remove(tf)
+#' s <- file.remove(tf)
 #' 
 #' @importFrom microseq gregexpr
 #' 
