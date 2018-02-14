@@ -21,7 +21,7 @@ nucleotide (\code{FALSE}) sequences.}
 header text will be discarded.}
 }
 \value{
-This function produces a FASTA formatted sequence file.
+This function produces a FASTA formatted sequence file, and returns the name of this file.
 }
 \description{
 Preparing a FASTA file before starting comparisons of sequences in a pan-genome study.
@@ -47,26 +47,30 @@ files to have one of the extensions \samp{.fsa}, \samp{.faa}, \samp{.fa} or \sam
 \code{\link{panPrep}} will also remove very short sequences (< 10 amino acids), removing stop codon
 symbols (\samp{*}), replacing alien characters with \samp{X} and converting all sequences to upper-case.
 If the input \samp{discard} contains a regular expression, any sequences having a match to this in their
-headerline are also removed. Example: If we use \code{\link{prodigalPredict}} to find proteins in a
+headerline are also removed. Example: If we use \code{\link{prodigal}} to find proteins in a
 genome, partially predicted genes will have the text \samp{partial=10} or \samp{partial=01} in their
 headerline. Using \samp{discard="partial=01|partial=10"} will remove these from the data set.
 }
 \examples{
-\dontrun{
 # Using a protein file in the micropan package
-extdata <- file.path(path.package("micropan"),"extdata")
-prot.file <- "Example_proteins.fasta"
+xpth <- file.path(path.package("micropan"),"extdata")
+prot.file <- file.path(xpth,"Example_proteins.fasta.xz")
 
 # We need to uncompress it first...
-xzuncompress(file.path(extdata,paste(prot.file,".xz",sep="")))
+tf <- tempfile(fileext=".xz")
+s <- file.copy(prot.file,tf)
+tf <- xzuncompress(tf)
 
 # Prepping it, using the GID.tag "GID123"
-panPrep(file.path(extdata,prot.file),GID.tag="GID123","Example_proteins.fsa") 
-# ...should produce a FASTA file named Example_proteins_GID123.fsa
+out.file <- tempfile(fileext=".fasta")
+prepped.file <- panPrep(tf,GID.tag="GID123",out.file) 
 
-# ...and compress the input file again...
-xzcompress(file.path(extdata,prot.file))
-}
+# Reading the prepped file
+prepped <- readFasta(prepped.file)
+print(prepped$Header[1:5])
+
+# ...and cleaning...
+s <- file.remove(tf,prepped.file)
 
 }
 \seealso{

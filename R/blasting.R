@@ -64,20 +64,29 @@
 #' 
 #' @examples 
 #' \dontrun{
+#' # This example requires the external BLAST+ software
 #' # Using protein files in this package
-#' extdata <- file.path(path.package("micropan"),"extdata")
-#' prot.files <- c("Example_proteins_GID1.fasta",
-#'                 "Example_proteins_GID2.fasta",
-#'                 "Example_proteins_GID3.fasta")
+#' xpth <- file.path(path.package("micropan"),"extdata")
+#' prot.files <- file.path(xpth,c("Example_proteins_GID1.fasta.xz",
+#'                                "Example_proteins_GID2.fasta.xz",
+#'                                "Example_proteins_GID3.fasta.xz"))
 #' 
 #' # We need to uncompress them first...
-#' pth <- lapply(file.path(extdata,paste(prot.files,".xz",sep="")),xzuncompress)
+#' tf <- tempfile(fileext=c("GID1.fasta.xz","GID2.fasta.xz","GID3.fasta.xz"))
+#' s <- file.copy(prot.files,tf)
+#' tf <- unlist(lapply(tf,xzuncompress))
 #' 
-#' # Blasting all versus all...
-#' blastAllAll(file.path(extdata,prot.files),out.folder=".")
+#' # Blasting all versus all...(requires BLAST+)
+#' tmp.dir <- tempdir()
+#' blastAllAll(tf,out.folder=tmp.dir)
 #' 
-#' # ...and compressing the files again...
-#' pth <- lapply(file.path(extdata,prot.files),xzcompress)
+#' # Reading results, and computing blast.distances
+#' blast.files <- dir(tmp.dir,pattern="GID[0-9]+_vs_GID[0-9]+.txt")
+#' blast.distances <- bDist(file.path(tmp.dir,blast.files))
+#' 
+#' # ...and cleaning tmp.dir...
+#' s <- file.remove(tf)
+#' s <- file.remove(file.path(tmp.dir,blast.files))
 #' }
 #' 
 #' @importFrom microseq gregexpr
@@ -85,7 +94,9 @@
 blastAllAll <- function( prot.files, out.folder, e.value=1, job=1, threads=1, verbose=T ){
   if( available.external( "blast+" ) ){
     for( i in 1:length( prot.files ) ){
-      command <- paste( "makeblastdb -logfile log.txt -dbtype prot -out blastDB", job, " -in ", prot.files[i], sep="" )
+      log.fil <- file.path( out.folder, "log.txt" )
+      db.fil <- file.path( out.folder, paste( "blastDB", job, sep="" ) )
+      command <- paste( "makeblastdb -logfile",log.fil, "-dbtype prot -out", db.fil, "-in", prot.files[i] )
       system( command )
       gi <- gregexpr( "GID[0-9]+", prot.files[i], extract=T )
       for( j in 1:length( prot.files ) ){
@@ -95,7 +106,7 @@ blastAllAll <- function( prot.files, out.folder, e.value=1, job=1, threads=1, ve
         if( !(rname %in% res.files) ){
           if( verbose ) cat( "blastAllAll: ", rname, "\n" )
           input <- paste( "-query ", prot.files[j], sep="" )
-          dbase <- paste( "-db blastDB", job, sep="" )
+          dbase <- paste( "-db ", db.fil, sep="" )
           output <- paste( "-out ", file.path( out.folder, rname ), sep="" )
           command <- paste( "blastp -matrix BLOSUM45 -evalue", e.value, "-num_threads", threads,
                             "-outfmt 6", input, dbase, output )
@@ -103,10 +114,10 @@ blastAllAll <- function( prot.files, out.folder, e.value=1, job=1, threads=1, ve
         }
       }
     }
-    file.remove( paste( "blastDB", job, ".pin", sep="" ) )
-    file.remove( paste( "blastDB", job, ".phr", sep="" ) )
-    file.remove( paste( "blastDB", job, ".psq", sep="" ) )
-    file.remove( "log.txt", "log.txt.perf" )
+    file.remove( paste( db.fil, ".pin", sep="" ) )
+    file.remove( paste( db.fil, ".phr", sep="" ) )
+    file.remove( paste( db.fil, ".psq", sep="" ) )
+    file.remove( log.fil, paste( log.fil, ".perf", sep="") )
     return( "done" )
   }
 }
@@ -131,20 +142,21 @@ blastAllAll <- function( prot.files, out.folder, e.value=1, job=1, threads=1, ve
 #' @seealso \code{\link{blastAllAll}}, \code{\link{bDist}}.
 #' 
 #' @examples 
-#' \dontrun{
 #' # Using a BLAST result file in this package
-#' extdata <- file.path(path.package("micropan"),"extdata")
-#' blast.file <- "GID1_vs_GID2.txt"
+#' xpth <- file.path(path.package("micropan"),"extdata")
+#' blast.file <- file.path( xpth, "GID1_vs_GID2.txt.xz" )
 #' 
 #' # We need to uncompress it first...
-#' xzuncompress(file.path(extdata,paste(blast.file,".xz",sep="")))
+#' tf <- tempfile(fileext=".xz")
+#' s <- file.copy(blast.file,tf)
+#' xzuncompress(tf)
+#' tf <- sub(".xz","",tf)
 #' 
 #' #...then we can read it...
-#' blast.table <- readBlastTable(file.path(extdata,blast.file))
+#' blast.table <- readBlastTable(tf)
 #' 
-#' # ...and compressing it again...
-#' xzcompress(file.path(extdata,blast.file))
-#' }
+#' # ...and deleting temporary file
+#' s <- file.remove(tf)
 #' 
 #' @importFrom utils read.table
 #' 

@@ -20,29 +20,30 @@
 #' @seealso \code{\link{readGFF}}, \code{\link{findOrfs}}.
 #' 
 #' @examples
-#' \dontrun{
 #' # Using two files in this package
-#' extdata <- file.path(path.package("micropan"),"extdata")
-#' gff.file <- "Example.gff"
-#' genome.file <- "Example_genome.fasta"
+#' xpth <- file.path(path.package("micropan"),"extdata")
+#' gff.file <- file.path(xpth,"Example.gff.xz")
+#' genome.file <- file.path(xpth,"Example_genome.fasta.xz")
 #' 
 #' # We need to uncompress them first...
-#' xzuncompress(file.path(extdata,paste(gff.file,".xz",sep="")))
-#' xzuncompress(file.path(extdata,paste(genome.file,".xz",sep="")))
+#' gff.tf <- tempfile(fileext=".xz")
+#' s <- file.copy(gff.file,gff.tf)
+#' gff.tf <- xzuncompress(gff.tf)
+#' genome.tf <- tempfile(fileext=".xz")
+#' s <- file.copy(genome.file,genome.tf)
+#' genome.tf <- xzuncompress(genome.tf)
 #' 
 #' # Reading
-#' gff.table <- readGFF(file.path(extdata,gff.file))
-#' genome <- readFasta(file.path(extdata,genome.file))
+#' gff.table <- readGFF(gff.tf)
+#' genome <- readFasta(genome.tf)
 #' 
 #' # Retrieving sequences
 #' fasta.obj <- gff2fasta(gff.table,genome)
 #' summary(fasta.obj)
 #' plot(fasta.obj)
 #' 
-#' # ...and compressing the files again...
-#' xzcompress(file.path(extdata,gff.file))
-#' xzcompress(file.path(extdata,genome.file))
-#' }
+#' # ...and cleaning...
+#' s <- file.remove(gff.tf,genome.tf)
 #' 
 #' @useDynLib micropan
 #' @importFrom Rcpp evalCpp
@@ -164,22 +165,23 @@ gffSignature <- function( gff.table ){
 #' @seealso \code{\link{findOrfs}}, \code{\link{lorfs}}.
 #' 
 #' @examples
-#' \dontrun{
-#' #' # Using a GFF file in this package
-#' extdata <- file.path(path.package("micropan"),"extdata")
-#' gff.file <- "Mpneumoniae_309_prodigal.gff"
+#' # Using a GFF file in this package
+#' xpth <- file.path(path.package("micropan"),"extdata")
+#' gff.file <- file.path(xpth,"Example.gff.xz")
 #' 
 #' # We need to uncompress it first...
-#' xzuncompress(file.path(extdata,paste(gff.file,".xz",sep="")))
+#' tf <- tempfile(fileext=".xz")
+#' s <- file.copy(gff.file,tf)
+#' tf <- xzuncompress(tf)
 #' 
 #' # Reading, finding signature, and writing...
-#' gff.table <- readGFF(file.path(extdata,gff.file))
+#' gff.table <- readGFF(tf)
 #' print(gffSignature(gff.table))
-#' writeGFF(gff.table[1:3,], out.file="delete_me.gff")
+#' out.tf <- tempfile(fileext=".gff")
+#' writeGFF(gff.table[1:3,], out.tf)
 #' 
-#' # ...and compressing the GFF file again...
-#' xzcompress(file.path(extdata,gff.file))
-#' }
+#' # ...and cleaning...
+#' s <- file.remove(tf,out.tf)
 #' 
 #' @export readGFF writeGFF
 #' 

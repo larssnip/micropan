@@ -41,10 +41,17 @@ up in this file. If you want to download multiple genomes, you call \code{\link{
 times.
 }
 \examples{
-\dontrun{
 # Accession numbers for the chromosome and plasmid of Buchnera aphidicola, strain APS
-entrezDownload(accession="BA000003.2,AP001071.1",out.file="Buchnera_aphidicola_APS.fsa")
-}
+acc <- "BA000003.2,AP001071.1"
+tf <- tempfile(pattern="Buchnera_aphidicola",fileext=".fasta")
+txt <- entrezDownload(acc,out.file=tf)
+
+# Reading file to inspect
+genome <- readFasta(tf)
+summary(genome)
+
+# ...cleaning...
+file.remove(tf)
 
 }
 \seealso{

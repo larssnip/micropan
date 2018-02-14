@@ -30,23 +30,26 @@ The barrnap software must be installed on the system for this function to work, 
 }
 \examples{
 \dontrun{
+# This example requires the external barrnap software
 # Using a genome file in this package.
-extdata <- file.path(path.package("micropan"),"extdata")
-genome.file <- "Example_genome.fasta"
+xpth <- file.path(path.package("micropan"),"extdata")
+genome.file <- file.path(xpth,"Example_genome.fasta.xz")
 
 # We need to uncompress it first...
-xzuncompress(file.path(extdata,paste(genome.file,".xz",sep="")))
+tf <- tempfile(fileext=".xz")
+s <- file.copy(genome.file,tf)
+tf <- xzuncompress(tf)
 
 # Searching for rRNA sequences, and inspecting
-gff.table <- barrnap(file.path(extdata,genome.file))
+gff.table <- barrnap(tf)
 print(gff.table)
 
 # Retrieving the sequences
-genome <- readFasta(file.path(extdata,genome.file))
+genome <- readFasta(tf)
 rRNA.fasta <- gff2fasta(gff.table,genome)
 
-# ...and compressing the genome FASTA file again...
-xzcompress(file.path(extdata,genome.file))
+# ...and cleaning...
+file.remove(tf)
 }
 
 }

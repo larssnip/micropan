@@ -49,22 +49,23 @@ numerical columns Start, End, Score and Phase. Here \code{NA} is used, but this 
 \code{"."} when writing to file.
 }
 \examples{
-\dontrun{
 #' # Using a GFF file in this package
-extdata <- file.path(path.package("micropan"),"extdata")
-gff.file <- "Mpneumoniae_309_prodigal.gff"
+xpth <- file.path(path.package("micropan"),"extdata")
+gff.file <- file.path(xpth,"Example.gff.xz")
 
 # We need to uncompress it first...
-xzuncompress(file.path(extdata,paste(gff.file,".xz",sep="")))
+tf <- tempfile(fileext=".xz")
+s <- file.copy(gff.file,tf)
+tf <- xzuncompress(tf)
 
 # Reading, finding signature, and writing...
-gff.table <- readGFF(file.path(extdata,gff.file))
+gff.table <- readGFF(tf)
 print(gffSignature(gff.table))
-writeGFF(gff.table[1:3,], out.file="delete_me.gff")
+out.tf <- tempfile(fileext=".gff")
+writeGFF(gff.table[1:3,], out.tf)
 
-# ...and compressing the GFF file again...
-xzcompress(file.path(extdata,gff.file))
-}
+# ...and cleaning...
+s <- file.remove(tf,out.tf)
 
 }
 \seealso{

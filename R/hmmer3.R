@@ -46,33 +46,49 @@
 #' 
 #' @seealso \code{\link{panPrep}}, \code{\link{readHmmer}}.
 #' 
-#' @examples 
+#' @examples
 #' \dontrun{
+#' # This example requires the external HMMER software
 #' # Using two files in the micropan package
-#' extdata <- file.path(path.package("micropan"),"extdata")
-#' prot.file <- "Example_proteins_GID1.fasta" # FASTA file with proteins
-#' db <- "microfam.hmm"                       # tiny HMM database
+#' xpth <- file.path(path.package("micropan"),"extdata")
+#' prot.file <- file.path(xpth,"Example_proteins_GID1.fasta.xz")
+#' db <- "microfam.hmm"
+#' db.files <- file.path(xpth,paste(db,c(".h3f.xz",".h3i.xz",".h3m.xz",".h3p.xz"),sep=""))
 #' 
 #' # We need to uncompress them first...
-#' xzuncompress(file.path(extdata,paste(prot.file,".xz",sep="")))
-#' pth <- lapply(file.path(extdata,paste(db,
-#'               c(".h3f.xz",".h3i.xz",".h3m.xz",".h3p.xz"),sep="")),xzuncompress)
+#' prot.tf <- tempfile(pattern="GID1.fasta",fileext=".xz")
+#' s <- file.copy(prot.file,prot.tf)
+#' prot.tf <- xzuncompress(prot.tf)
+#' db.tf <- paste(tempfile(),c(".h3f.xz",".h3i.xz",".h3m.xz",".h3p.xz"),sep="")
+#' s <- file.copy(db.files,db.tf)
+#' db.tf <- unlist(lapply(db.tf,xzuncompress))
+#' db.name <- gsub("\\",.Platform$file.sep,sub(".h3f$","",db.tf[1]),fixed=T)
 #' 
 #' # Scanning the FASTA-file against microfam0...
-#' hmmerScan(in.files=file.path(extdata,prot.file),db=file.path(extdata,db),out.folder=".")
-#'   
-#' # ...and compressing all files again...
-#' xzcompress(file.path(extdata,prot.file))
-#' pth <- lapply(file.path(extdata,paste(db,
-#'               c(".h3f",".h3i",".h3m",".h3p"),sep="")),xzcompress)
+#' tmp.dir <- tempdir()
+#' hmmerScan(in.files=prot.tf,db=db.name,out.folder=tmp.dir)
+#'
+#' # Reading results
+#' db.nm <- rev(unlist(strsplit(db.name,split=.Platform$file.sep)))[1]
+#' hmm.file <- file.path(tmp.dir,paste("GID1_vs_",db.nm,".txt",sep=""))
+#' hmm.tab <- readHmmer(hmm.file)
+#' 
+#' # ...and cleaning...
+#' s <- file.remove(prot.tf)
+#' s <- file.remove(sub(".xz","",db.tf))
+#' s <- file.remove(hmm.file)
 #' }
 #' 
 #' @export hmmerScan
 #' 
 hmmerScan <- function( in.files, db, out.folder, threads=0, verbose=TRUE ){
+  if( length(db)>1 ){
+    stop( "Argument db must be a single text" )
+  }
   if( available.external( "hmmer" ) ){
-    basic <- paste( "hmmscan -o delete_me.txt --cut_ga --noali --cpu", threads )
-    db.name <- rev( unlist( strsplit( db, split="/" ) ) )[1]
+    log.fil <- file.path( out.folder, "log.txt" )
+    basic <- paste( "hmmscan -o", log.fil,"--cut_ga --noali --cpu", threads )
+    db.name <- rev( unlist( strsplit( db, split=.Platform$file.sep ) ) )[1]
     for( i in 1:length( in.files ) ){
       gi <- gregexpr( "GID[0-9]+", in.files[i], extract=T )
       rname <- paste( gi, "_vs_", db.name, ".txt", sep="" )
@@ -81,7 +97,7 @@ hmmerScan <- function( in.files, db, out.folder, threads=0, verbose=TRUE ){
         if( verbose ) cat( "hmmerScan: Scanning", in.files[i], "...\n" )
         command <- paste( basic, "--domtblout", file.path( out.folder, rname ), db, in.files[i]  )
         system( command )
-        file.remove( "delete_me.txt" )
+        file.remove( log.fil )
       }
     }
   }
@@ -117,9 +133,11 @@ hmmerScan <- function( in.files, db, out.folder, threads=0, verbose=TRUE ){
 #' 
 #' @seealso \code{\link{hmmerScan}}, \code{\link{hmmerCleanOverlap}}, \code{\link{dClust}}.
 #' 
-#' @examples # See the example in the Help-file for dClust.
+#' @examples
+#' # See the examples in the Help-files for dClust and hmmerScan.
 #' 
-#' @export
+#' @export readHmmer
+#' 
 readHmmer <- function( hmmer.file, e.value=1, use.acc=TRUE ){
   al <- readLines( hmmer.file )
   al <- al[which( !grepl( "\\#", al ) )]

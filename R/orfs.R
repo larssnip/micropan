@@ -41,28 +41,30 @@
 #' @seealso \code{\link{readGFF}}, \code{\link{gff2fasta}}, \code{\link{lorfs}}.
 #' 
 #' @examples
-#' \dontrun{
 #' # Using a genome file in this package
-#' extdata <- file.path(path.package("micropan"),"extdata")
-#' genome.file <- "Example_genome.fasta"
+#' xpth <- file.path(path.package("micropan"),"extdata")
+#' genome.file <- file.path(xpth,"Example_genome.fasta.xz")
 #' 
 #' # We need to uncompress them first...
-#' xzuncompress(file.path(extdata,paste(genome.file,".xz",sep="")))
+#' tf <- tempfile(fileext=".xz")
+#' s <- file.copy(genome.file,tf)
+#' tf <- xzuncompress(tf)
 #' 
 #' # Reading into R and finding orfs
-#' genome <- readFasta(file.path(extdata,genome.file))
+#' genome <- readFasta(tf)
 #' orf.table <- findOrfs(genome)
 #' 
 #' # Computing ORF-lengths
 #' orf.lengths <- orfLength(orf.table)
+#' barplot(table(orf.lengths[orf.lengths>1]))
 #' 
 #' # Filtering to retrieve the LORFs only
 #' lorf.table <- lorfs(orf.table)
 #' lorf.lengths <- orfLength(lorf.table)
+#' barplot(table(lorf.lengths[lorf.lengths>1]))
 #' 
-#' # ...and compressing the genome file again...
-#' xzcompress(file.path(extdata,genome.file))
-#' }
+#' # ...and cleaning...
+#' file.remove(tf)
 #' 
 #' @useDynLib micropan
 #' @importFrom Rcpp evalCpp

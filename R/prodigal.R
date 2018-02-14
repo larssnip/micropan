@@ -1,4 +1,4 @@
-#' @name prodigalPredict
+#' @name prodigal
 #' @title Gene predictions using Prodigal
 #' 
 #' @description Finds coding genes in a genome using the Prodigal software.
@@ -34,19 +34,25 @@
 #' 
 #' @examples 
 #' \dontrun{
+#' # This example requires the external Prodigal software
 #' # Using a genome file in this package
-#' extdata <- file.path(path.package("micropan"),"extdata")
-#' genome.file <- "Example_genome.fasta"
+#' xpth <- file.path(path.package("micropan"),"extdata")
+#' genome.file <- file.path(xpth,"Example_genome.fasta.xz")
 #' 
 #' # We need to uncompress it first...
-#' xzuncompress(file.path(extdata,paste(genome.file,".xz",sep="")))
+#' tf <- tempfile(fileext=".xz")
+#' s <- file.copy(genome.file,tf)
+#' tf <- xzuncompress(tf)
 #'
 #' # Calling Prodigal, and writing all predicted proteins to a file as well
-#' gff.table <- prodigal(file.path(extdata,genome.file),
-#'                       prot.file=gsub("_genome","_protein",genome.file))
+#' prot.file <- tempfile(fileext=".fasta")
+#' gff.table <- prodigal(tf,prot.file)
 #' 
-#' # ...and compressing the genome file again...
-#' xzcompress(file.path(extdata,genome.file))
+#' # Reading protein file as well
+#' proteins <- readFasta(prot.file)
+#' 
+#' # ...and cleaning...
+#' s <- file.remove(tf,prot.file)
 #' }
 #' 
 #' @export prodigal

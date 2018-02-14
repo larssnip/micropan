@@ -34,10 +34,17 @@
 #' @seealso \code{\link{getAccessions}}, \code{\link[microseq]{readFasta}}.
 #' 
 #' @examples 
-#' \dontrun{
 #' # Accession numbers for the chromosome and plasmid of Buchnera aphidicola, strain APS
-#' entrezDownload(accession="BA000003.2,AP001071.1",out.file="Buchnera_aphidicola_APS.fsa")
-#' }
+#' acc <- "BA000003.2,AP001071.1"
+#' tf <- tempfile(pattern="Buchnera_aphidicola",fileext=".fasta")
+#' txt <- entrezDownload(acc,out.file=tf)
+#' 
+#' # Reading file to inspect
+#' genome <- readFasta(tf)
+#' summary(genome)
+#' 
+#' # ...cleaning...
+#' file.remove(tf)
 #' 
 #' @export entrezDownload
 #' 
@@ -84,12 +91,18 @@ entrezDownload <- function( accession, out.file, verbose=TRUE ){
 #' @seealso \code{\link{entrezDownload}}.
 #' 
 #' @examples 
-#' \dontrun{
 #' # The master record accession for the WGS genome Mycoplasma genitalium, strain G37
 #' acc <- getAccessions("AAGX00000000")
-#' # Then we use this to download all contigs and save them in the same fasta file
-#' entrezDownload(acc,out.file="Mycoplasma_genitalium_G37.fsa")
-#' }
+#' # Then we use this to download all contigs and save them
+#' tf <- tempfile(fileext=".fasta")
+#' txt <- entrezDownload(acc,out.file=tf)
+#' 
+#' # Reading the file to inspect it
+#' genome <- readFasta(tf)
+#' summary(genome)
+#' 
+#' # ...cleaning...
+#' file.remove(tf)
 #' 
 #' @importFrom microseq gregexpr
 #' 

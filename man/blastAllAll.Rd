@@ -73,20 +73,29 @@ run them in the Console window.
 }
 \examples{
 \dontrun{
+# This example requires the external BLAST+ software
 # Using protein files in this package
-extdata <- file.path(path.package("micropan"),"extdata")
-prot.files <- c("Example_proteins_GID1.fasta",
-                "Example_proteins_GID2.fasta",
-                "Example_proteins_GID3.fasta")
+xpth <- file.path(path.package("micropan"),"extdata")
+prot.files <- file.path(xpth,c("Example_proteins_GID1.fasta.xz",
+                               "Example_proteins_GID2.fasta.xz",
+                               "Example_proteins_GID3.fasta.xz"))
 
 # We need to uncompress them first...
-pth <- lapply(file.path(extdata,paste(prot.files,".xz",sep="")),xzuncompress)
+tf <- tempfile(fileext=c("GID1.fasta.xz","GID2.fasta.xz","GID3.fasta.xz"))
+s <- file.copy(prot.files,tf)
+tf <- unlist(lapply(tf,xzuncompress))
 
-# Blasting all versus all...
-blastAllAll(file.path(extdata,prot.files),out.folder=".")
+# Blasting all versus all...(requires BLAST+)
+tmp.dir <- tempdir()
+blastAllAll(tf,out.folder=tmp.dir)
 
-# ...and compressing the files again...
-pth <- lapply(file.path(extdata,prot.files),xzcompress)
+# Reading results, and computing blast.distances
+blast.files <- dir(tmp.dir,pattern="GID[0-9]+_vs_GID[0-9]+.txt")
+blast.distances <- bDist(file.path(tmp.dir,blast.files))
+
+# ...and cleaning tmp.dir...
+s <- file.remove(tf)
+s <- file.remove(file.path(tmp.dir,blast.files))
 }
 
 }

@@ -26,29 +26,30 @@ the sequences from \code{genome$Sequence}. Every Seqid in the \code{gff.table}
 must match the first token in one of the \code{genome$Header} texts.
 }
 \examples{
-\dontrun{
 # Using two files in this package
-extdata <- file.path(path.package("micropan"),"extdata")
-gff.file <- "Example.gff"
-genome.file <- "Example_genome.fasta"
+xpth <- file.path(path.package("micropan"),"extdata")
+gff.file <- file.path(xpth,"Example.gff.xz")
+genome.file <- file.path(xpth,"Example_genome.fasta.xz")
 
 # We need to uncompress them first...
-xzuncompress(file.path(extdata,paste(gff.file,".xz",sep="")))
-xzuncompress(file.path(extdata,paste(genome.file,".xz",sep="")))
+gff.tf <- tempfile(fileext=".xz")
+s <- file.copy(gff.file,gff.tf)
+gff.tf <- xzuncompress(gff.tf)
+genome.tf <- tempfile(fileext=".xz")
+s <- file.copy(genome.file,genome.tf)
+genome.tf <- xzuncompress(genome.tf)
 
 # Reading
-gff.table <- readGFF(file.path(extdata,gff.file))
-genome <- readFasta(file.path(extdata,genome.file))
+gff.table <- readGFF(gff.tf)
+genome <- readFasta(genome.tf)
 
 # Retrieving sequences
 fasta.obj <- gff2fasta(gff.table,genome)
 summary(fasta.obj)
 plot(fasta.obj)
 
-# ...and compressing the files again...
-xzcompress(file.path(extdata,gff.file))
-xzcompress(file.path(extdata,genome.file))
-}
+# ...and cleaning...
+s <- file.remove(gff.tf,genome.tf)
 
 }
 \seealso{

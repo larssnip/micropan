@@ -55,23 +55,35 @@ The HMMER3 software must be installed on the system for this function to work, i
 }
 \examples{
 \dontrun{
+# This example requires the external HMMER software
 # Using two files in the micropan package
-extdata <- file.path(path.package("micropan"),"extdata")
-prot.file <- "Example_proteins_GID1.fasta" # FASTA file with proteins
-db <- "microfam.hmm"                       # tiny HMM database
+xpth <- file.path(path.package("micropan"),"extdata")
+prot.file <- file.path(xpth,"Example_proteins_GID1.fasta.xz")
+db <- "microfam.hmm"
+db.files <- file.path(xpth,paste(db,c(".h3f.xz",".h3i.xz",".h3m.xz",".h3p.xz"),sep=""))
 
 # We need to uncompress them first...
-xzuncompress(file.path(extdata,paste(prot.file,".xz",sep="")))
-pth <- lapply(file.path(extdata,paste(db,
-              c(".h3f.xz",".h3i.xz",".h3m.xz",".h3p.xz"),sep="")),xzuncompress)
+prot.tf <- tempfile(pattern="GID1.fasta",fileext=".xz")
+s <- file.copy(prot.file,prot.tf)
+prot.tf <- xzuncompress(prot.tf)
+db.tf <- paste(tempfile(),c(".h3f.xz",".h3i.xz",".h3m.xz",".h3p.xz"),sep="")
+s <- file.copy(db.files,db.tf)
+db.tf <- unlist(lapply(db.tf,xzuncompress))
+db.name <- gsub("\\\\",.Platform$file.sep,sub(".h3f$","",db.tf[1]),fixed=T)
 
 # Scanning the FASTA-file against microfam0...
-hmmerScan(in.files=file.path(extdata,prot.file),db=file.path(extdata,db),out.folder=".")
-  
-# ...and compressing all files again...
-xzcompress(file.path(extdata,prot.file))
-pth <- lapply(file.path(extdata,paste(db,
-              c(".h3f",".h3i",".h3m",".h3p"),sep="")),xzcompress)
+tmp.dir <- tempdir()
+hmmerScan(in.files=prot.tf,db=db.name,out.folder=tmp.dir)
+
+# Reading results
+db.nm <- rev(unlist(strsplit(db.name,split=.Platform$file.sep)))[1]
+hmm.file <- file.path(tmp.dir,paste("GID1_vs_",db.nm,".txt",sep=""))
+hmm.tab <- readHmmer(hmm.file)
+
+# ...and cleaning...
+s <- file.remove(prot.tf)
+s <- file.remove(sub(".xz","",db.tf))
+s <- file.remove(hmm.file)
 }
 
 }

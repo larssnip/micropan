@@ -26,12 +26,18 @@ available for every WGS genome. \code{\link{getAccessions}} will extract these f
 return them in the apropriate way to be used by \code{\link{entrezDownload}}.
 }
 \examples{
-\dontrun{
 # The master record accession for the WGS genome Mycoplasma genitalium, strain G37
 acc <- getAccessions("AAGX00000000")
-# Then we use this to download all contigs and save them in the same fasta file
-entrezDownload(acc,out.file="Mycoplasma_genitalium_G37.fsa")
-}
+# Then we use this to download all contigs and save them
+tf <- tempfile(fileext=".fasta")
+txt <- entrezDownload(acc,out.file=tf)
+
+# Reading the file to inspect it
+genome <- readFasta(tf)
+summary(genome)
+
+# ...cleaning...
+file.remove(tf)
 
 }
 \seealso{
