@@ -37,7 +37,7 @@ genome <- readFasta(tf)
 summary(genome)
 
 # ...cleaning...
-file.remove(tf)
+s <- file.remove(tf)
 
 }
 \seealso{

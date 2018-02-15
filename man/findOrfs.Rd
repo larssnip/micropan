@@ -69,7 +69,7 @@ lorf.lengths <- orfLength(lorf.table)
 barplot(table(lorf.lengths[lorf.lengths>1]))
 
 # ...and cleaning...
-file.remove(tf)
+s <- file.remove(tf)
 
 }
 \seealso{

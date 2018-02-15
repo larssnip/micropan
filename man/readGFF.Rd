@@ -49,7 +49,7 @@ numerical columns Start, End, Score and Phase. Here \code{NA} is used, but this 
 \code{"."} when writing to file.
 }
 \examples{
-#' # Using a GFF file in this package
+# Using a GFF file in this package
 xpth <- file.path(path.package("micropan"),"extdata")
 gff.file <- file.path(xpth,"Example.gff.xz")
 
