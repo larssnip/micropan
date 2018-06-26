@@ -19,7 +19,7 @@
 #' where the number of sequences is low, \samp{accession} is typically a single text listing all accession
 #' numbers separated by commas. In the case of some draft genomes having a large number of contigs, the
 #' accession numbers must be split into several comma-separated texts. The reason for this is that Entrez
-#' will not accept too many queries in one chunk (less than 500). 
+#' will not accept too many queries in one chunk. 
 #' 
 #' The downloaded sequences are saved in \samp{file} on your system. This will be a FASTA formatted file,
 #' and should by convention have the filename extension \samp{.fsa}. Note that all downloaded sequences end
@@ -75,14 +75,18 @@ entrezDownload <- function( accession, out.file, verbose=TRUE ){
 #' 
 #' @param master.record.accession The accession number (single text) to a master record GenBank file having
 #' the WGS entry specifying the accession numbers to all contigs of the WGS genome.
+#' @param chunk.size The maximum number of accession numbers returned in one text.
 #' 
 #' @details In order to download a WGS genome (draft genome) using \code{\link{entrezDownload}} you will
 #' need the accession number of every contig. This is found in the master record GenBank file, which is
 #' available for every WGS genome. \code{\link{getAccessions}} will extract these from the GenBank file and
 #' return them in the apropriate way to be used by \code{\link{entrezDownload}}.
 #' 
+#' The download API at NCBI will not tolerate too many accessions per query, and for this reason you need
+#' to split the accessions for many contigs into several texts using \code{chunk.size}.
+#' 
 #' @return A character vector where each element is a text listing the accession numbers separated by commas.
-#' Each vector element will contain no more than 500 accession numbers, see \code{\link{entrezDownload}}
+#' Each vector element will contain no more than \code{chunk.size} accession numbers, see \code{\link{entrezDownload}}
 #' for details on this. The vector returned by \code{\link{getAccessions}} is typically used as input to
 #' \code{\link{entrezDownload}}.
 #' 
@@ -108,43 +112,45 @@ entrezDownload <- function( accession, out.file, verbose=TRUE ){
 #' 
 #' @export getAccessions
 #' 
-getAccessions <- function( master.record.accession ){
-  adrId    <- paste( "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=nuccore&term=", master.record.accession, sep="" )
-  idSearch <- url( adrId, open="rt" )
-  if( isOpen( idSearch )){
-    idDoc  <- readLines( idSearch )
+getAccessions <- function(master.record.accession, chunk.size=99){
+  adrId    <- paste0("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=nuccore&term=", master.record.accession)
+  idSearch <- url(adrId, open="rt")
+  if(isOpen(idSearch)){
+    idDoc  <- readLines(idSearch)
     idLine <- which(regexpr("<Id>+",idDoc)==1)[1]
     id     <- substr(idDoc[idLine], 5, nchar(idDoc[idLine])-5)
-    close( idSearch )
+    close(idSearch)
   } else {
-    cat( "Download failed: Could not open connection\n" )
+    cat("Download failed: Could not open connection\n")
+    close(idSearch)
     return(NULL)
   }
 
-  adr <- paste( "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&id=", id, "&retmode=text&rettype=gb", sep="" )
-  entrez <- url( adr, open="rt" )
+  adr <- paste0("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&id=", id, "&retmode=text&rettype=gb")
+  entrez <- url(adr, open="rt")
   accessions <- ""
-  if( isOpen( entrez ) ){
-    lines <- readLines( entrez )
-    close( entrez )
-    wgs.line <- gsub( "WGS[ ]+", "", lines[grep( "WGS   ", lines )] )
-    ss <- unlist( strsplit( wgs.line, split="-" ) )
-    head <- gregexpr( "[A-Z]+[0]+", ss[1], extract=T )
-    ss.num <- as.numeric( gsub( "^[A-Z]+[0]+", "", ss ) )
-    if( length( ss.num ) > 1 ){
+  if(isOpen(entrez)){
+    lines <- readLines(entrez)
+    close(entrez)
+    wgs.line <- gsub("WGS[ ]+", "", lines[grep("WGS   ", lines )])
+    ss <- unlist(strsplit(wgs.line, split="-" ))
+    head <- gregexpr("[A-Z]+[0]+", ss[1], extract=T)
+    ss.num <- as.numeric(gsub( "^[A-Z]+[0]+", "", ss))
+    if(length( ss.num ) > 1){
       range <- ss.num[1]:ss.num[2]
     } else {
       range <- ss.num
     }
-    ns <- ceiling( length( range ) / 500 )
-    accessions <- character( ns )
-    for( j in 1:ns ){
-      s1 <- (j-1)*500 + 1
-      s2 <- min( j*500, length( range ) )
-      accessions[j] <- paste( paste( head, range[s1]:range[s2], sep="" ), collapse="," )
+    ns <- ceiling(length(range)/chunk.size)
+    accessions <- character(ns)
+    for(j in 1:ns){
+      s1 <- (j-1)*chunk.size + 1
+      s2 <- min(j*chunk.size, length(range))
+      accessions[j] <- paste(paste(head, range[s1]:range[s2], sep=""), collapse=",")
     }
   } else {
-    cat( "Download failed: Could not open connection\n" )
+    close(entrez)
+    cat("Download failed: Could not open connection\n")
   }
-  return( accessions )
+  return(accessions)
 }

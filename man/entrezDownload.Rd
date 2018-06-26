@@ -33,7 +33,7 @@ all accession numbers related to a genome (chromosomes, plasmids, contigs, etc).
 where the number of sequences is low, \samp{accession} is typically a single text listing all accession
 numbers separated by commas. In the case of some draft genomes having a large number of contigs, the
 accession numbers must be split into several comma-separated texts. The reason for this is that Entrez
-will not accept too many queries in one chunk (less than 500). 
+will not accept too many queries in one chunk. 
 
 The downloaded sequences are saved in \samp{file} on your system. This will be a FASTA formatted file,
 and should by convention have the filename extension \samp{.fsa}. Note that all downloaded sequences end
