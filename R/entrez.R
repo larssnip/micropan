@@ -48,23 +48,26 @@
 #' 
 #' @export entrezDownload
 #' 
-entrezDownload <- function( accession, out.file, verbose=TRUE ){
-  if( verbose ) cat( "Downloading genome..." )
-  connect <- file( out.file, open="w" )
-  for( j in 1:length( accession ) ){
-    adr <- paste( "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nucleotide&id=", accession[j], "&retmode=text&rettype=fasta", sep="" )
-    entrez <- url( adr, open="rt" )
-    if( isOpen( entrez ) ){
-      lines <- readLines( entrez )
-      writeLines( lines, con=connect )
-      close( entrez )
+entrezDownload <- function(accession, out.file, verbose = TRUE){
+  if(verbose) cat("Downloading genome...")
+  connect <- file(out.file, open = "w")
+  for(j in 1:length(accession)){
+    adr <- paste0("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nucleotide",
+                  "&id=", accession[j],
+                  "&retmode=text",
+                  "&rettype=fasta")
+    entrez <- url(adr, open = "rt")
+    if(isOpen(entrez)){
+      lines <- readLines(entrez)
+      writeLines(lines, con = connect)
+      close(entrez)
     } else {
-      cat( "Download failed: Could not open connection\n" )
+      cat("Download failed: Could not open connection\n")
     }
   }
-  close( connect )
-  if( verbose ) cat( "...sequences saved in", out.file, "\n" )
-  return( out.file )
+  close(connect)
+  if(verbose) cat("...sequences saved in", out.file, "\n")
+  return(out.file)
 }
 
 
@@ -112,13 +115,14 @@ entrezDownload <- function( accession, out.file, verbose=TRUE ){
 #' 
 #' @export getAccessions
 #' 
-getAccessions <- function(master.record.accession, chunk.size=99){
-  adrId    <- paste0("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=nuccore&term=", master.record.accession)
-  idSearch <- url(adrId, open="rt")
+getAccessions <- function(master.record.accession, chunk.size = 99){
+  adrId <- paste0("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=nuccore",
+                  "&term=", master.record.accession)
+  idSearch <- url(adrId, open = "rt")
   if(isOpen(idSearch)){
-    idDoc  <- readLines(idSearch)
-    idLine <- which(regexpr("<Id>+",idDoc)==1)[1]
-    id     <- substr(idDoc[idLine], 5, nchar(idDoc[idLine])-5)
+    idDoc <- readLines(idSearch)
+    idLine <- which(regexpr("<Id>+",idDoc) == 1)[1]
+    id <- substr(idDoc[idLine], 5, nchar(idDoc[idLine]) - 5)
     close(idSearch)
   } else {
     cat("Download failed: Could not open connection\n")
@@ -126,15 +130,18 @@ getAccessions <- function(master.record.accession, chunk.size=99){
     return(NULL)
   }
 
-  adr <- paste0("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&id=", id, "&retmode=text&rettype=gb")
-  entrez <- url(adr, open="rt")
+  adr <- paste0("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore",
+                "&id=", id,
+                "&retmode=text",
+                "&rettype=gb")
+  entrez <- url(adr, open = "rt")
   accessions <- ""
   if(isOpen(entrez)){
     lines <- readLines(entrez)
     close(entrez)
     wgs.line <- gsub("WGS[ ]+", "", lines[grep("WGS   ", lines )])
-    ss <- unlist(strsplit(wgs.line, split="-" ))
-    head <- gregexpr("[A-Z]+[0]+", ss[1], extract=T)
+    ss <- unlist(strsplit(wgs.line, split = "-" ))
+    head <- gregexpr("[A-Z]+[0]+", ss[1], extract = T)
     ss.num <- as.numeric(gsub( "^[A-Z]+[0]+", "", ss))
     if(length( ss.num ) > 1){
       range <- ss.num[1]:ss.num[2]
@@ -146,7 +153,7 @@ getAccessions <- function(master.record.accession, chunk.size=99){
     for(j in 1:ns){
       s1 <- (j-1)*chunk.size + 1
       s2 <- min(j*chunk.size, length(range))
-      accessions[j] <- paste(paste(head, range[s1]:range[s2], sep=""), collapse=",")
+      accessions[j] <- paste(paste(head, range[s1]:range[s2], sep = ""), collapse = ",")
     }
   } else {
     close(entrez)

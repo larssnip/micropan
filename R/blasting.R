@@ -91,34 +91,34 @@
 #' 
 #' @importFrom microseq gregexpr
 #' @export
-blastAllAll <- function( prot.files, out.folder, e.value=1, job=1, threads=1, verbose=T ){
-  if( available.external( "blast+" ) ){
-    for( i in 1:length( prot.files ) ){
-      log.fil <- file.path( out.folder, "log.txt" )
-      db.fil <- file.path( out.folder, paste( "blastDB", job, sep="" ) )
-      command <- paste( "makeblastdb -logfile",log.fil, "-dbtype prot -out", db.fil, "-in", prot.files[i] )
-      system( command )
-      gi <- gregexpr( "GID[0-9]+", prot.files[i], extract=T )
-      for( j in 1:length( prot.files ) ){
-        gj <- gregexpr( "GID[0-9]+", prot.files[j], extract=T )    
-        rname <- paste( gj, "_vs_", gi, ".txt", sep="" )
-        res.files <- dir( out.folder )
-        if( !(rname %in% res.files) ){
-          if( verbose ) cat( "blastAllAll: ", rname, "\n" )
-          input <- paste( "-query ", prot.files[j], sep="" )
-          dbase <- paste( "-db ", db.fil, sep="" )
-          output <- paste( "-out ", file.path( out.folder, rname ), sep="" )
-          command <- paste( "blastp -matrix BLOSUM45 -evalue", e.value, "-num_threads", threads,
-                            "-outfmt 6", input, dbase, output )
-          system( command )
+blastAllAll <- function(prot.files, out.folder, e.value = 1, job = 1, threads = 1, verbose = T){
+  if(available.external("blast+")){
+    for(i in 1:length(prot.files)){
+      log.fil <- file.path(out.folder, "log.txt")
+      db.fil <- file.path(out.folder, paste0("blastDB", job))
+      command <- paste("makeblastdb -logfile",log.fil, "-dbtype prot -out", db.fil, "-in", prot.files[i])
+      system(command)
+      gi <- gregexpr("GID[0-9]+", prot.files[i], extract = T)
+      for(j in 1:length(prot.files)){
+        gj <- gregexpr("GID[0-9]+", prot.files[j], extract = T)    
+        rname <- paste0(gj, "_vs_", gi, ".txt")
+        res.files <- dir(out.folder)
+        if(!(rname %in% res.files)){
+          if(verbose) cat("blastAllAll: ", rname, "\n")
+          input <- paste0("-query ", prot.files[j])
+          dbase <- paste0("-db ", db.fil)
+          output <- paste0("-out ", file.path(out.folder, rname))
+          command <- paste("blastp -matrix BLOSUM45 -evalue", e.value, "-num_threads", threads,
+                            "-outfmt 6", input, dbase, output)
+          system(command)
         }
       }
     }
-    file.remove( paste( db.fil, ".pin", sep="" ) )
-    file.remove( paste( db.fil, ".phr", sep="" ) )
-    file.remove( paste( db.fil, ".psq", sep="" ) )
-    file.remove( log.fil, paste( log.fil, ".perf", sep="") )
-    return( "done" )
+    file.remove(paste0(db.fil, ".pin"))
+    file.remove(paste0(db.fil, ".phr"))
+    file.remove(paste0(db.fil, ".psq"))
+    file.remove(log.fil, paste0(log.fil, ".perf"))
+    return(TRUE)
   }
 }
 
@@ -160,10 +160,11 @@ blastAllAll <- function( prot.files, out.folder, e.value=1, job=1, threads=1, ve
 #' @importFrom utils read.table
 #' 
 #' @export
-readBlastTable <- function( blast.file ){
-  columnames <- c( "Query", "Hit", "Percent.identity", "Alignment.length", "Mismatches", "Gap.openings", "Query.start", "Query.end", "Hit.start", "Hit.end", "E.value", "Bit.score" )
-  data <- read.table( blast.file, sep="\t", quote="", header=F, col.names=columnames, stringsAsFactors=F )
-  return( data )
+readBlastTable <- function(blast.file){
+  columnames <- c("Query", "Hit", "Percent.identity", "Alignment.length", "Mismatches",
+                  "Gap.openings", "Query.start", "Query.end", "Hit.start", "Hit.end", "E.value", "Bit.score")
+  data <- read.table(blast.file, sep = "\t", quote = "", header = F, col.names = columnames, stringsAsFactors = F)
+  return(data)
 }
 
 
