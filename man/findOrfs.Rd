@@ -4,12 +4,14 @@
 \alias{findOrfs}
 \title{Finding ORFs in genomes}
 \usage{
-findOrfs(genome, circular = F)
+findOrfs(genome, circular = F, trans.tab = 1)
 }
 \arguments{
 \item{genome}{A \code{\link{Fasta}} object with the genome sequence(s).}
 
 \item{circular}{Logical indicating if the genome sequences are completed, circular sequences.}
+
+\item{trans.tab}{Translation table}
 }
 \value{
 This function returns a \code{gff.table}, which is simply a \code{data.frame} with columns
@@ -22,11 +24,15 @@ Finds all ORFs in prokaryotic genome sequences.
 \details{
 A prokaryotic Open Reading Frame (ORF) is defined as a subsequence starting with a  start-codon
 (ATG, GTG or TTG), followed by an integer number of triplets (codons), and ending with a stop-codon (TAA,
-TGA or TAG). This function will locate all ORFs in a genome.
+TGA or TAG, unless \code{trans.tab} is not 1, see below). This function will locate all ORFs in a genome.
 
 The argument \code{genome} will typically have several sequences (chromosomes/plasmids/scaffolds/contigs).
 It is vital that the \emph{first token} (characters before first space) of every \code{genome$Header} is
 unique, since this will be used to identify these genome sequences in the output.
+
+An alternative translation table may be specified, and as of now the only alternative implemented is table 4.
+This means codon TGA is no longer a stop, but codes for Tryptophan. This coding is used by some bacteria
+(e.g. Mycoplasma, Mesoplasma).
 
 Note that for any given stop-codon there are usually multiple start-codons in the same reading
 frame. This function will return all, i.e. the same stop position may appear multiple times. If
@@ -37,9 +43,7 @@ By default the genome sequences are assumed to be linear, i.e. contigs or other 
 of a genome. In such cases there will usually be some truncated ORFs at each end, i.e. ORFs where either
 the start- or the stop-codon is lacking. In the \code{gff.table} returned by this function this is marked in the
 Attributes column. The texts "Truncated=10" or "Truncated=01" indicates truncated at 
-the Start or End, respectively.
-
-If the supplied \code{genome} is a completed genome, with 
+the Start or End, respectively. If the supplied \code{genome} is a completed genome, with 
 circular chromosome/plasmids, set the flag \code{circular=TRUE} and no truncated ORFs will be listed.
 In cases where an ORF runs across the origin of a circular genome sequences, the Stop coordinate will be
 larger than the length of the genome sequence. This is in line with the specifications of the GFF3 format, where 

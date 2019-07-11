@@ -138,7 +138,7 @@ hmmerScan <- function( in.files, db, out.folder, threads=0, verbose=TRUE ){
 #' 
 #' @export readHmmer
 #' 
-readHmmer <- function( hmmer.file, e.value=1, use.acc=TRUE ){
+readHmmer <- function(hmmer.file, e.value=1, use.acc=TRUE){
   al <- readLines( hmmer.file )
   al <- al[which( !grepl( "\\#", al ) )]
   al <- gsub( "[ ]+", " ", al )

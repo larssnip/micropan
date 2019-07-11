@@ -5,7 +5,7 @@ extractSeq <- function(Gseq, Left, Right, Strand) {
     .Call('_micropan_extractSeq', PACKAGE = 'micropan', Gseq, Left, Right, Strand)
 }
 
-ORF_index <- function(Tags, Sequence) {
-    .Call('_micropan_ORF_index', PACKAGE = 'micropan', Tags, Sequence)
+ORF_index <- function(Tags, Sequence, trans_tab) {
+    .Call('_micropan_ORF_index', PACKAGE = 'micropan', Tags, Sequence, trans_tab)
 }
 

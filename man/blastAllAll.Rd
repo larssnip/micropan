@@ -4,8 +4,8 @@
 \alias{blastAllAll}
 \title{Making BLAST search all against all genomes}
 \usage{
-blastAllAll(prot.files, out.folder, e.value = 1, job = 1, threads = 1,
-  verbose = T)
+blastAllAll(prot.files, out.folder, e.value = 1, job = 1,
+  threads = 1, verbose = T)
 }
 \arguments{
 \item{prot.files}{A text vector with the names of the FASTA files where the protein sequences of

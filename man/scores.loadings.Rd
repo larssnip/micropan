@@ -5,11 +5,11 @@
 \alias{plotLoadings}
 \title{Plotting scores and loadings in a \code{Panpca} object}
 \usage{
-plotScores(pan.pca, x = 1, y = 2, show.labels = TRUE, labels = NULL,
-  col = "black", pch = 16, ...)
+plotScores(pan.pca, x = 1, y = 2, show.labels = TRUE,
+  labels = NULL, col = "black", pch = 16, ...)
 
-plotLoadings(pan.pca, x = 1, y = 2, show.labels = TRUE, col = "black",
-  pch = 16, ...)
+plotLoadings(pan.pca, x = 1, y = 2, show.labels = TRUE,
+  col = "black", pch = 16, ...)
 }
 \arguments{
 \item{pan.pca}{A \code{Panpca} object, see \code{\link{panpca}} for details.}

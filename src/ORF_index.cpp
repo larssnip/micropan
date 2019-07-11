@@ -4,7 +4,7 @@
 using namespace Rcpp;
 
 // [[Rcpp::export]]
-Rcpp::DataFrame ORF_index(SEXP Tags, SEXP Sequence) {
+Rcpp::DataFrame ORF_index(SEXP Tags, SEXP Sequence, int trans_tab) {
   std::vector<std::string> tag = as<std::vector<std::string> >(Tags);
   std::vector<std::string> seq  = as<std::vector<std::string> >(Sequence);
   std::vector<int> start1(10000,0);
@@ -69,7 +69,11 @@ Rcpp::DataFrame ORF_index(SEXP Tags, SEXP Sequence) {
               ret = 2;
             } else {
               if(C2 == "G"){
-                ret = 2;
+                if(trans_tab == 1){
+                  ret = 2;
+                } else {
+                  ret = 0;
+                }
               } else {
                 if(C2 == "C"){
                   ret = -2;

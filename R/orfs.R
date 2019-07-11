@@ -5,14 +5,19 @@
 #' 
 #' @param genome A \code{\link{Fasta}} object with the genome sequence(s).
 #' @param circular Logical indicating if the genome sequences are completed, circular sequences.
+#' @param trans.tab Translation table
 #' 
 #' @details A prokaryotic Open Reading Frame (ORF) is defined as a subsequence starting with a  start-codon
 #' (ATG, GTG or TTG), followed by an integer number of triplets (codons), and ending with a stop-codon (TAA,
-#' TGA or TAG). This function will locate all ORFs in a genome.
+#' TGA or TAG, unless \code{trans.tab} is not 1, see below). This function will locate all ORFs in a genome.
 #' 
 #' The argument \code{genome} will typically have several sequences (chromosomes/plasmids/scaffolds/contigs).
 #' It is vital that the \emph{first token} (characters before first space) of every \code{genome$Header} is
 #' unique, since this will be used to identify these genome sequences in the output.
+#' 
+#' An alternative translation table may be specified, and as of now the only alternative implemented is table 4.
+#' This means codon TGA is no longer a stop, but codes for Tryptophan. This coding is used by some bacteria
+#' (e.g. Mycoplasma, Mesoplasma).
 #' 
 #' Note that for any given stop-codon there are usually multiple start-codons in the same reading
 #' frame. This function will return all, i.e. the same stop position may appear multiple times. If
@@ -23,9 +28,7 @@
 #' of a genome. In such cases there will usually be some truncated ORFs at each end, i.e. ORFs where either
 #' the start- or the stop-codon is lacking. In the \code{gff.table} returned by this function this is marked in the
 #' Attributes column. The texts "Truncated=10" or "Truncated=01" indicates truncated at 
-#' the Start or End, respectively.
-#' 
-#' If the supplied \code{genome} is a completed genome, with 
+#' the Start or End, respectively. If the supplied \code{genome} is a completed genome, with 
 #' circular chromosome/plasmids, set the flag \code{circular=TRUE} and no truncated ORFs will be listed.
 #' In cases where an ORF runs across the origin of a circular genome sequences, the Stop coordinate will be
 #' larger than the length of the genome sequence. This is in line with the specifications of the GFF3 format, where 
@@ -71,52 +74,53 @@
 #' 
 #' @export findOrfs
 #' 
-findOrfs <- function( genome, circular=F ){
-  tags <- sapply( strsplit( genome$Header, split=" " ), function(x){x[1]} )
-  if( length( unique( tags ) ) != length( tags ) ) stop( "First token in the Headers must be unique!" )
-  NC <- nchar( genome$Sequence )
-  names( NC ) <- tags
-  orf.table <- ORF_index( tags, genome$Sequence )
-  orf.table$Seqid <- as.character( orf.table$Seqid )
+findOrfs <- function(genome, circular = F, trans.tab = 1){
+  tags <- sapply(strsplit(genome$Header, split = " "), function(x){x[1]})
+  if(length(unique(tags)) != length(tags)) stop( "First token in the Headers must be unique!" )
+  NC <- nchar(genome$Sequence)
+  names(NC) <- tags
+  orf.table <- ORF_index(tags, genome$Sequence, trans.tab)
+  orf.table$Seqid <- as.character(orf.table$Seqid)
   
-  if( circular ){
-    idx <- which( orf.table$Truncated != 0 )
-    otn <- circularize( orf.table[idx,], NC )
-    orf.table <- rbind( orf.table[-idx,],
-                        otn )
+  if(circular){
+    idx <- which(orf.table$Truncated != 0)
+    otn <- circularize(orf.table[idx,], NC)
+    orf.table <- rbind(orf.table[-idx,], otn)
   }
   
-  nr <- nrow( orf.table )
-  dStrand <- rep( "+", nr )
+  nr <- nrow(orf.table)
+  dStrand <- rep("+", nr)
   dStrand[orf.table$Strand < 0] <- "-"
-  dAttribute <- rep( "Truncated=00", nr )
+  dAttribute <- rep("Truncated=00", nr)
   dAttribute[orf.table$Truncated > 0] <- "Truncated=10"
   dAttribute[orf.table$Truncated < 0] <- "Truncated=01"
   
-  gff.table <- data.frame( Seqid=orf.table$Seqid,
-                           Source=rep( "micropan::findOrfs", nr ),
-                           Type= rep( "ORF", nr ),
-                           Start=orf.table$Start,
-                           End=orf.table$End,
-                           Score=rep( NA, nr ),
-                           Strand=dStrand,
-                           Phase=rep( 0, nr ),
-                           Attributes=dAttribute,
-                           stringsAsFactors=F )
-  return( gff.table )
+  gff.table <- data.frame(Seqid      = orf.table$Seqid,
+                          Source     = rep( "micropan::findOrfs", nr ),
+                          Type       = rep( "ORF", nr ),
+                          Start      = orf.table$Start,
+                          End        = orf.table$End,
+                          Score      = rep( NA, nr ),
+                          Strand     = dStrand,
+                          Phase      = rep( 0, nr ),
+                          Attributes = dAttribute,
+                          stringsAsFactors = F)
+  return(gff.table)
 }
 
 
 #' @name orfLength
 #' @title ORF lengths
 #' 
-#' @description Computes the lengths of all ORFs in a \code{gff.table}.
+#' @description Computes the lengths, in codons, of all ORFs in a \code{gff.table}.
 #' 
 #' @param gff.table A \code{gff.table} (\code{data.frame}) with genomic features information.
 #' 
-#' @details See \code{\link{findOrfs}} for more on \code{gff.table}s.
+#' @details Note that the length returned is the number of codons in the ORF, not the number of bases. The number
+#' of bases should be 3 times the length. The number of amino acids should be the length minus 1 (stop codon) if the ORF is 
+#' not truncated. See \code{\link{findOrfs}} for more on \code{gff.table}s.
 #' 
-#' @return A vector of ORF lengths, measured as the number of amino acids after translation.
+#' @return A vector of ORF lengths, measured as the number of codons.
 #' 
 #' @author Lars Snipen and Kristian Hovde Liland.
 #' 
@@ -126,8 +130,8 @@ findOrfs <- function( genome, circular=F ){
 #' 
 #' @export orfLength
 #' 
-orfLength <- function( gff.table ){
-  return( (abs( gff.table$Start - gff.table$End ) - 2)/3 )
+orfLength <- function(gff.table){
+  return((abs(gff.table$Start - gff.table$End) + 1)/3)
 }
 
 

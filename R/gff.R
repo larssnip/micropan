@@ -51,10 +51,10 @@
 #' 
 #' @export gff2fasta
 #' 
-gff2fasta <- function( gff.table, genome ){
-  utag <- unique( gff.table$Seqid )
-  tagz <- unique( sapply( strsplit( genome$Header, split=" " ), function(x){x[1]} ) )
-  if( sum( is.na( match( utag, tagz ) ) ) > 0 )
+gff2fasta <- function(gff.table, genome){
+  utag <- unique(gff.table$Seqid)
+  tagz <- unique(sapply(strsplit(genome$Header, split=" "), function(x){x[1]}))
+  if(sum(is.na(match(utag,tagz))) > 0)
     stop( "Seqid's in the gff.table do not match the genome$Header" )
   
   n <- nrow( gff.table )
@@ -116,6 +116,7 @@ gffSignature <- function( gff.table ){
                  sep="" )
   return( desc )
 }
+
 
 
 

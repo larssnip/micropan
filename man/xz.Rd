@@ -6,12 +6,12 @@
 \title{Compressing and uncompressing text files}
 \usage{
 xzcompress(filename, destname = sprintf("\%s.xz", filename),
-  temporary = FALSE, skip = FALSE, overwrite = FALSE, remove = TRUE,
-  BFR.SIZE = 1e+07, compression = 6, ...)
+  temporary = FALSE, skip = FALSE, overwrite = FALSE,
+  remove = TRUE, BFR.SIZE = 1e+07, compression = 6, ...)
 
-xzuncompress(filename, destname = gsub("[.]xz$", "", filename, ignore.case =
-  TRUE), temporary = FALSE, skip = FALSE, overwrite = FALSE,
-  remove = TRUE, BFR.SIZE = 1e+07, ...)
+xzuncompress(filename, destname = gsub("[.]xz$", "", filename,
+  ignore.case = TRUE), temporary = FALSE, skip = FALSE,
+  overwrite = FALSE, remove = TRUE, BFR.SIZE = 1e+07, ...)
 }
 \arguments{
 \item{filename}{Path name of input file.}
