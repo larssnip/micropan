@@ -5,8 +5,7 @@
 \alias{summary.Binomix}
 \title{Plot and summary of \code{Binomix} objects}
 \usage{
-\method{plot}{Binomix}(x, type = "pan", cex = 2, ncomp = NA,
-  show.bar = TRUE, ...)
+\method{plot}{Binomix}(x, type = "pan", cex = 2, ncomp = NA, show.bar = TRUE, ...)
 
 \method{summary}{Binomix}(object, ...)
 }

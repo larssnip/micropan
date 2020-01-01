@@ -1,40 +1,42 @@
 #' @name panPrep
 #' @title Preparing FASTA files for pan-genomics
 #' 
-#' @description Preparing a FASTA file before starting comparisons of sequences in a pan-genome study.
+#' @description Preparing a FASTA file before starting comparisons of sequences.
+#' 
+#' @usage panPrep(in.file, genome_id, out.file, protein = TRUE, min.length = 10, discard = "")
 #' 
 #' @param in.file The name of a FASTA formatted file with protein or nucleotide sequences for coding
 #' genes in a genome.
-#' @param GID.tag The Genome IDentifier tag, see below.
+#' @param genome_id The Genome Identifier, see below.
 #' @param out.file Name of file where the prepared sequences will be written.
 #' @param protein Logical, indicating if the \samp{in.file} contains protein (\code{TRUE}) or
 #' nucleotide (\code{FALSE}) sequences.
+#' @param min.length Minimum sequence length
 #' @param discard A text, a regular expression, and sequences having a match against this in their
-#' header text will be discarded.
+#' headerline will be discarded.
 #' 
-#' @details This function will read a FASTA file and produce another, slightly modified, FASTA file
-#' which is prepared for genome-wise comparisons using \code{\link{blastAllAll}}, \code{\link{hmmerScan}}
-#' or any other method. 
+#' @details This function will read the \code{in.file} and produce another, slightly modified, FASTA file
+#' which is prepared for the comparisons using \code{\link{blastAllAll}}, \code{\link{hmmerScan}}
+#' or any other method.
 #' 
 #' The main purpose of \code{\link{panPrep}} is to make certain every sequence is labeled with a tag
-#' called a \samp{GID.tag} (Genome IDentifier tag) identifying the genome. This text contains the text
+#' called a \samp{genome_id} identifying the genome from which it comes. This text contains the text
 #' \dQuote{GID} followed by an integer. This integer can be any integer as long as it is unique to every
-#' genome in the study. It can typically be the BioProject number or any other integer that is uniquely
-#' related to a specific genome. If a genome has the text \dQuote{GID12345} as identifier, then the
+#' genome in the study. If a genome has the text \dQuote{GID12345} as identifier, then the
 #' sequences in the file produced by \code{\link{panPrep}} will have headerlines starting with
 #' \dQuote{GID12345_seq1}, \dQuote{GID12345_seq2}, \dQuote{GID12345_seq3}...etc. This makes it possible
 #' to quickly identify which genome every sequence belongs to.
 #' 
-#' The \samp{GID.tag} is also added to the file name specified in \samp{out.file}. For this reason the
+#' The \samp{genome_id} is also added to the file name specified in \samp{out.file}. For this reason the
 #' \samp{out.file} must have a file extension containing letters only. By convention, we expect FASTA
 #' files to have one of the extensions \samp{.fsa}, \samp{.faa}, \samp{.fa} or \samp{.fasta}.
 #' 
-#' \code{\link{panPrep}} will also remove very short sequences (< 10 amino acids), removing stop codon
+#' \code{\link{panPrep}} will also remove sequences shorter than \code{min.length}, removing stop codon
 #' symbols (\samp{*}), replacing alien characters with \samp{X} and converting all sequences to upper-case.
 #' If the input \samp{discard} contains a regular expression, any sequences having a match to this in their
 #' headerline are also removed. Example: If we use \code{\link{prodigal}} to find proteins in a
 #' genome, partially predicted genes will have the text \samp{partial=10} or \samp{partial=01} in their
-#' headerline. Using \samp{discard="partial=01|partial=10"} will remove these from the data set.
+#' headerline. Using \samp{discard= "partial=01|partial=10"} will remove these from the data set.
 #' 
 #' @return This function produces a FASTA formatted sequence file, and returns the name of this file.
 #' 
@@ -44,47 +46,46 @@
 #' 
 #' @examples
 #' # Using a protein file in the micropan package
-#' xpth <- file.path(path.package("micropan"),"extdata")
-#' prot.file <- file.path(xpth,"Example_proteins.fasta.xz")
-#' 
 #' # We need to uncompress it first...
-#' tf <- tempfile(fileext=".xz")
-#' s <- file.copy(prot.file,tf)
-#' tf <- xzuncompress(tf)
+#' pf <- file.path(file.path(path.package("micropan"),"extdata"),"Example_proteins.fasta.xz")
+#' prot.file <- tempfile(fileext = ".xz")
+#' ok <- file.copy(from = pf, to = prot.file)
+#' prot.file <- xzuncompress(prot.file)
 #' 
-#' # Prepping it, using the GID.tag "GID123"
-#' out.file <- tempfile(fileext=".fasta")
-#' prepped.file <- panPrep(tf,GID.tag="GID123",out.file) 
+#' # Prepping it, using the genome_id "GID123"
+#' prepped.file <- panPrep(prot.file, genome_id = "GID123", out.file = tempfile(fileext = ".fasta"))
 #' 
 #' # Reading the prepped file
 #' prepped <- readFasta(prepped.file)
-#' print(prepped$Header[1:5])
 #' 
 #' # ...and cleaning...
-#' s <- file.remove(tf,prepped.file)
+#' ok <- file.remove(prot.file, prepped.file)
 #' 
-#' @importFrom microseq readFasta writeFasta gregexpr
+#' @importFrom microseq readFasta writeFasta
+#' @importFrom dplyr mutate filter %>% 
+#' @importFrom stringr str_remove str_length str_c str_extract str_replace
 #' 
 #' @export panPrep
 #' 
-panPrep <- function( in.file, GID.tag, out.file, protein=TRUE, discard=NA ){
-  if( protein ){
+panPrep <- function(in.file, genome_id, out.file, protein = TRUE, min.length = 10, discard = ""){
+  if(protein){
     alien <- "[^ARNDCQEGHILKMFPSTWYV]"
-    minl <- 10
   } else {
     alien <- "[^ACGT]"
-    minl <- 30
   }
-  fdta <- readFasta( in.file )
-  if( !is.na( discard ) ) fdta <- fdta[grep( discard, fdta$Header, invert=T ),]
-  fdta$Sequence <- toupper( gsub( "\\*", "", fdta$Sequence ) )
-  fdta <- fdta[which( nchar( fdta$Sequence ) >= minl ),]
-  fdta$Sequence <- gsub( alien, "X", fdta$Sequence )
-  nseq <- dim( fdta )[1]
-  tok1 <- paste( GID.tag, paste( "seq", 1:nseq, sep="" ), sep="_" )
-  fdta$Header <- paste( tok1, fdta$Header )
-  fext <- unlist( gregexpr( "\\.[a-zA-Z]+$", out.file, extract=T ) )
-  fname <- paste( gsub( "\\.[a-zA-Z]+$", "", out.file ), "_", GID.tag, fext, sep="" )
-  writeFasta( fdta, out.file=fname )
-  return( fname )
+  readFasta(in.file) %>% 
+    mutate(Sequence = toupper(Sequence)) %>% 
+    mutate(Sequence = str_remove_all(Sequence, "\\*")) %>% 
+    mutate(Length = str_length(Sequence)) %>% 
+    filter(Length >= min.length) %>% 
+    mutate(Sequence = str_replace_all(Sequence, pattern = alien, "X")) %>% 
+    mutate(Header = str_c(genome_id, "_seq", 1:n(), " ", Header)) -> fdta
+  if(str_length(discard) > 0){
+    fdta %>%
+      filter(str_detect(Header, pattern = discard, negate = T)) -> fdta
+  }
+  fext <- str_extract(out.file, "\\.[a-zA-Z]+$")
+  out.file <- str_replace(out.file, fext, str_c("_", genome_id, fext))
+  writeFasta(fdta, out.file = out.file)
+  return(out.file)
 }

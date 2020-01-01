@@ -5,8 +5,13 @@
 \alias{summary.Panmat}
 \title{Plot and summary of \code{Panmat} objects}
 \usage{
-\method{plot}{Panmat}(x, col = "black", xlab = "Number of genomes",
-  ylab = "Number of clusters", ...)
+\method{plot}{Panmat}(
+  x,
+  col = "black",
+  xlab = "Number of genomes",
+  ylab = "Number of clusters",
+  ...
+)
 
 \method{summary}{Panmat}(object, ...)
 }

@@ -5,8 +5,14 @@
 \alias{summary.Rarefac}
 \title{Plot and summary of \code{Rarefac} objects}
 \usage{
-\method{plot}{Rarefac}(x, type = "b", pch = 16, xlab = "Genomes",
-  ylab = "Number of unique gene clusters", ...)
+\method{plot}{Rarefac}(
+  x,
+  type = "b",
+  pch = 16,
+  xlab = "Genomes",
+  ylab = "Number of unique gene clusters",
+  ...
+)
 
 \method{summary}{Rarefac}(object, ...)
 }

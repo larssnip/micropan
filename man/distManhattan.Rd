@@ -4,8 +4,7 @@
 \alias{distManhattan}
 \title{Computing Manhattan distances between genomes}
 \usage{
-distManhattan(pan.matrix, scale = 0, weights = rep(1,
-  dim(pan.matrix)[2]))
+distManhattan(pan.matrix, scale = 0, weights = rep(1, dim(pan.matrix)[2]))
 }
 \arguments{
 \item{pan.matrix}{A \code{Panmat} object, see \code{\link{panMatrix}} for details.}

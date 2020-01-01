@@ -4,13 +4,13 @@
 \alias{isOrtholog}
 \title{Identifies orthologs in gene clusters}
 \usage{
-isOrtholog(clustering, dist.table)
+isOrtholog(clustering, dist.tbl)
 }
 \arguments{
 \item{clustering}{A vector of integers indicating the cluster for every sequence. Sequences with
 the same number belong to the same cluster. The name of each element is the tag identifying the sequence.}
 
-\item{dist.table}{A \code{data.frame} with pairwise distances. The columns \samp{Sequence.A} and
+\item{dist.tbl}{A \code{tibble} with pairwise distances. The columns \samp{Sequence.A} and
 \samp{Sequence.B} contain tags identifying pairs of sequences. The column \samp{Distance} contains the
 distances, always a number from 0.0 to 1.0.}
 }
@@ -24,7 +24,7 @@ Finds the ortholog sequences in every cluster based on pairwise distances.
 }
 \details{
 The input \code{clustering} is typically produced by \code{\link{bClust}}. The input
-\code{dist.table} is typically produced by \code{\link{bDist}}.
+\code{dist.tbl} is typically produced by \code{\link{bDist}}.
 
 The concept of orthologs is difficult for prokaryotes, and this function finds orthologs in a
 simplistic way. For a given cluster, with members from many genomes, there is one ortholog from every
@@ -42,10 +42,10 @@ tight and homogenous (and many) clusters, almost all sequences will be orthologs
 \examples{
 \dontrun{
 # Loading distance data in the micropan package
-data(list=c("Mpneumoniae.blast.distances","Mpneumoniae.blast.clustering"),package="micropan")
+data(list = c("Mpneumoniae.blast.distances","Mpneumoniae.blast.clustering"), package = "micropan")
 
 # Finding orthologs
-is.ortholog <- isOrtholog(Mpneumoniae.blast.clustering,Mpneumoniae.blast.distances)
+is.ortholog <- isOrtholog(Mpneumoniae.blast.clustering, Mpneumoniae.blast.distances)
 }
 
 }

@@ -4,12 +4,10 @@
 \alias{bClust}
 \title{Clustering sequences based on pairwise distances}
 \usage{
-bClust(dist.table, linkage = "single", threshold = 1)
+bClust(dist.tbl, linkage = "single", threshold = 1)
 }
 \arguments{
-\item{dist.table}{A \code{data.frame} with pairwise distances. The columns \samp{Sequence.A} and
-\samp{Sequence.B} contain tags identifying pairs of sequences. The column \samp{Distance} contains
-the distances, always a number from 0.0 to 1.0.}
+\item{dist.tbl}{A \code{tibble} with pairwise distances.}
 
 \item{linkage}{A text indicating what type of clustering to perform, either \samp{single} (default),
 \samp{average} or \samp{complete}.}
@@ -19,7 +17,7 @@ the distances, always a number from 0.0 to 1.0.}
 }
 \value{
 The function returns a vector of integers, indicating the cluster membership of every unique
-sequence from the \samp{Sequence.A} and \samp{Sequence.B} columns of the input \samp{dist.table}. The name
+sequence from the \samp{Query} or \samp{Hit} columns of the input \samp{dist.tbl}. The name
 of each element indicates the sequence. Sequences having the same number are in the same cluster.
 }
 \description{
@@ -34,13 +32,14 @@ Since the number of sequences may be huge, a full all-against-all distance matri
 to handle in memory. However, most sequence pairs will have an \sQuote{infinite} distance between them,
 and only the pairs with a finite (smallish) distance need to be considered.
 
-This function takes as input the distances in a \code{data.frame} where only the interesting distances
-are listed. Typically, this \code{data.frame} is the output from \code{\link{bDist}}. All pairs of
-sequence \emph{not} listed are assumed to have distance 1.0, which is considered the \sQuote{infinite}
-distance. Note that \samp{dist.table} must have the columns \samp{Sequence.A}, \samp{Sequence.B} and
-\samp{Distance}. The first two contain texts identifying sequences, the latter contains the distances. 
-All sequences must be listed at least once. This should pose no problem, since all sequences have
-distance 0.0 to themselves, and should be listed with this distance once. 
+This function takes as input the distances in \code{dist.tbl} where only the relevant distances are
+listed. The columns \samp{Query} and \samp{Hit} contain tags identifying pairs of sequences. The column
+\samp{Distance} contains the distances, always a number from 0.0 to 1.0. Typically, this is the output
+from \code{\link{bDist}}. All pairs of sequences \emph{not} listed are assumed to have distance 1.0,
+which is considered the \sQuote{infinite} distance.
+All sequences must be listed at least once in ceither column \samp{Query} or \samp{Hit} of the \code{dist.tbl}.
+This should pose no problem, since all sequences must have distance 0.0 to themselves, and should be listed
+with this distance once (\samp{Query} and \samp{Hit} containing the same tag). 
 
 The \samp{linkage} defines the type of clusters produced. The \samp{threshold} indicates the size of
 the clusters. A \samp{single} linkage clustering means all members of a cluster have at least one other
@@ -60,13 +59,13 @@ alternative to compute. Using the default setting of \samp{single} linkage and m
 }
 \examples{
 # Loading distance data in the micropan package
-data(Mpneumoniae.blast.distances,package="micropan")
+data(Mpneumoniae.blast.distances, package = "micropan")
 
 # Clustering with default settings
 clustering.blast.single <- bClust(Mpneumoniae.blast.distances)
 
 # Clustering with complete linkage and a liberal threshold
-clustering.blast.complete <- bClust(Mpneumoniae.blast.distances,linkage="complete",threshold=0.75)
+clustering.blast.complete <- bClust(Mpneumoniae.blast.distances, linkage = "complete", threshold = 0.75)
 
 }
 \seealso{

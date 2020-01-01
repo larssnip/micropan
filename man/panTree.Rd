@@ -4,8 +4,13 @@
 \alias{panTree}
 \title{Constructing pan-genome trees}
 \usage{
-panTree(pan.matrix, dist.FUN = distManhattan, nboot = 0,
-  linkage = "average", ...)
+panTree(
+  pan.matrix,
+  dist.FUN = distManhattan,
+  nboot = 0,
+  linkage = "average",
+  ...
+)
 }
 \arguments{
 \item{pan.matrix}{A \code{Panmat} object, see \code{\link{panMatrix}}.}

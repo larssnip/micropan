@@ -4,8 +4,12 @@
 \alias{binomixEstimate}
 \title{Binomial mixture model estimates}
 \usage{
-binomixEstimate(pan.matrix, K.range = 3:5, core.detect.prob = 1,
-  verbose = TRUE)
+binomixEstimate(
+  pan.matrix,
+  K.range = 3:5,
+  core.detect.prob = 1,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{pan.matrix}{A \code{Panmat} object, see \code{\link{panMatrix}} for details.}

@@ -5,8 +5,16 @@
 \alias{summary.Pantree}
 \title{Plot and summary of \code{Pantree} objects}
 \usage{
-\method{plot}{Pantree}(x, leaf.lab = NULL, col = "black", xlab = "",
-  main = "", cex = 1, show.boot = TRUE, ...)
+\method{plot}{Pantree}(
+  x,
+  leaf.lab = NULL,
+  col = "black",
+  xlab = "",
+  main = "",
+  cex = 1,
+  show.boot = TRUE,
+  ...
+)
 
 \method{summary}{Pantree}(object, ...)
 }
