@@ -10,6 +10,7 @@
 #' \samp{average} or \samp{complete}.
 #' @param threshold Specifies the maximum size of a cluster. Must be a distance, i.e. a number between
 #' 0.0 and 1.0.
+#' @param verbose Logical, turns on/off text output during computations.
 #' 
 #' @details  Computing clusters (gene families) is an essential step in many comparative studies.
 #' \code{\link{bClust}} will assign sequences into gene families by a hierarchical clustering approach.
@@ -52,14 +53,14 @@
 #' @seealso \code{\link{bDist}}, \code{\link{hclust}}, \code{\link{dClust}}, \code{\link{isOrtholog}}.
 #' 
 #' @examples
-#' # Loading distance data in the micropan package
-#' data(Mpneumoniae.blast.distances, package = "micropan")
+#' # Loading example BLAST distances
+#' data(xmpl.bdist)
 #' 
 #' # Clustering with default settings
-#' clustering.blast.single <- bClust(Mpneumoniae.blast.distances)
+#' clst.single <- bClust(xmpl.bdist)
 #' 
 #' # Clustering with complete linkage and a liberal threshold
-#' clustering.blast.complete <- bClust(Mpneumoniae.blast.distances, linkage = "complete", threshold = 0.75)
+#' clst.complete <- bClust(xmpl.bdist, linkage = "complete", threshold = 0.75)
 #' 
 #' @importFrom igraph graph.edgelist clusters degree
 #' @importFrom stats hclust as.dist cutree
@@ -67,18 +68,18 @@
 #' 
 #' @export bClust
 #' 
-bClust <- function(dist.tbl, linkage = "single", threshold = 1.0){
-  cat("bClust:\n")
+bClust <- function(dist.tbl, linkage = "single", threshold = 1.0, verbose = FALSE){
+  if(verbose) cat("bClust:\n")
   linknum <- grep(linkage, c("single", "average", "complete"))
   dist.tbl %>% 
     filter(Distance < threshold) -> dist.tbl
   utag <- sort(unique(c(dist.tbl$Query, dist.tbl$Hit))) # Important to sort here!
     
-  cat("...constructing graph with", length(utag), "sequences (nodes) and", nrow(dist.tbl), "distances (edges)\n")
+  if(verbose) cat("...constructing graph with", length(utag), "sequences (nodes) and", nrow(dist.tbl), "distances (edges)\n")
   M <- matrix(as.numeric(factor(c(dist.tbl$Query, dist.tbl$Hit), levels = utag)), ncol = 2, byrow = F)
   g <- graph.edgelist(M, directed = F)
   cls <- clusters(g)
-  cat("...found", cls$no, "single linkage clusters\n")
+  if(verbose) cat("...found", cls$no, "single linkage clusters\n")
   clustering <- cls$membership
   names(clustering) <- utag
   
@@ -89,14 +90,10 @@ bClust <- function(dist.tbl, linkage = "single", threshold = 1.0){
       degg <- degree(g, v)
       return(min(degg) < (length(degg) + 1))
     })
-    cat("...found", sum(incomplete), "incomplete clusters\n")
-    # idx.inc.cls <-      # the incomplete clusters
+    if(verbose) cat("...found", sum(incomplete), "incomplete clusters\n")
     if(sum(incomplete) > 0){
       clustering2 <- clustering * 1000
       idx.c <- which(incomplete)                   # the ucls who are incomplete
-      # idx.m <- which(clustering %in% ucls[idx.c])  # their member index in clustering
-      # mem.num <- clustering[idx.m]                 # the 
-      # mem.tag <- utag[idx.m] # is also sorted since idx.m and utag are sorted according to utag
       for(i in 1:length(idx.c)){   # for each incomplete cluster
         idx <- which(clustering == ucls[idx.c[i]])
         tag <- names(clustering[idx])
@@ -113,15 +110,15 @@ bClust <- function(dist.tbl, linkage = "single", threshold = 1.0){
           clst <- hclust(as.dist(D), method = "complete")
         }
         clustering2[idx] <- clustering2[idx] + cutree(clst, h = threshold)
-        cat(i, "/", length(idx.c), "\r")
+        if(verbose) cat(i, "/", length(idx.c), "\r")
       }
     }
   }
   fclustering <- as.integer(factor(clustering2))  # to get values 1,2,3,...
   names(fclustering) <- names(clustering2)
-  cat("...ended with", length(unique(fclustering)),
-      "clusters, largest cluster has",
-      max(table(fclustering)), "members\n")
+  if(verbose) cat("...ended with", length(unique(fclustering)),
+                  "clusters, largest cluster has",
+                  max(table(fclustering)), "members\n")
   return(sort(fclustering))
 }
 
@@ -164,13 +161,11 @@ bClust <- function(dist.tbl, linkage = "single", threshold = 1.0){
 #' @examples
 #' \dontrun{
 #' # Loading distance data in the micropan package
-#' data(list = c("Mpneumoniae.blast.distances","Mpneumoniae.blast.clustering"), package = "micropan")
+#' data(list = c("Buchnera.bdist","Buchnera.bclst"))
 #' 
 #' # Finding orthologs
-#' is.ortholog <- isOrtholog(Mpneumoniae.blast.clustering, Mpneumoniae.blast.distances)
+#' is.ortholog <- isOrtholog(Buchnera.bclst, Buchnera.bdist)
 #' }
-#' 
-#' @importFrom microseq gregexpr
 #' 
 #' @export isOrtholog
 #' 

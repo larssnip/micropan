@@ -12,11 +12,8 @@ with the same number belong to the same cluster. The name of each element is the
 the sequence.}
 }
 \value{
-The returned object belongs to the class \code{Panmat}, which is a small (S3) extension to a
-matrix. It can be treated as a matrix, but the generic functions \code{\link{plot.Panmat}} and
-\code{\link{summary.Panmat}} are defined for a \code{Panmat} object.
-The input vector \samp{clustering} is attached as the attribute \samp{clustering} to the \code{Panmat}
-object.
+An integer matrix with a row for each genome and a column for each sequence cluster.
+The input vector \samp{clustering} is attached as the attribute \samp{clustering}.
 }
 \description{
 A pan-matrix has one row for each genome and one column for each gene cluster, and
@@ -39,18 +36,17 @@ The rows of the pan-matrix is named by the GID-tag for every genome. The columns
 \samp{Cluster_x} where \samp{x} is an integer copied from \samp{clustering}.
 }
 \examples{
-# Loading clustering data in the micropan package
-data(list=c("Mpneumoniae.blast.clustering","Mpneumoniae.domain.clustering"),package="micropan")
+# Loading clustering data in this package
+data(xmpl.bclst)
 
-# Pan-matrix based on BLAST clustering
-panmat.blast <- panMatrix(Mpneumoniae.blast.clustering)
+# Pan-matrix based on the clustering
+panmat <- panMatrix(xmpl.bclst)
 
-# Pan-matrix based on domain sequence clustering
-panmat.domains <- panMatrix(Mpneumoniae.domain.clustering)
-
-# Plotting the first pan-matrix, and then printing its summary
-plot(panmat.blast)
-summary(panmat.blast)
+# Plotting cluster distribution
+tibble(Clusters = as.integer(table(factor(colSums(panmat > 0), levels = 1:nrow(panmat)))),
+       Genomes = 1:nrow(panmat)) \%>\% 
+ggplot(aes(x = Genomes, y = Clusters)) +
+geom_col()
 
 }
 \seealso{

@@ -7,7 +7,7 @@
 heaps(pan.matrix, n.perm = 100)
 }
 \arguments{
-\item{pan.matrix}{A \code{Panmat} object, see \code{\link{panMatrix}} for details.}
+\item{pan.matrix}{A pan-matrix, see \code{\link{panMatrix}} for details.}
 
 \item{n.perm}{The number of random permutations of genome ordering.}
 }
@@ -36,16 +36,12 @@ Word of caution: The Heaps law assumes independent sampling. If some of the geno
 form distinct sub-groups in the population, this may affect the results of this analysis severely.
 }
 \examples{
-# Loading a Panmat object in the micropan package 
-data(list="Mpneumoniae.blast.panmat",package="micropan")
+# Loading a pan-matrix in this package 
+data(xmpl.panmat)
 
 # Estimating population openness
-h.est <- heaps(Mpneumoniae.blast.panmat,n.perm=500)
-if(h.est[2]>1){
-  cat("Population is closed with alpha =",h.est[2], "\n")
-} else {
-  cat("Population is open with alpha =",h.est[2], "\n")
-}
+h.est <- heaps(xmpl.panmat, n.perm = 500)
+# If alpha < 1 it indicates an open pan-genome
 
 }
 \references{

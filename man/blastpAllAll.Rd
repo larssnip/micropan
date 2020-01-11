@@ -30,7 +30,9 @@ and each job should have different number here to avoid confusion on databases.}
 \item{verbose}{Logical, if \code{TRUE} some text output is produced to monitor the progress.}
 }
 \value{
-
+The function produces a result file for each pair of files listed in \samp{prot.files}.
+These result files are located in \code{out.folder}. Existing files are never overwritten by
+\code{\link{blastpAllAll}}, if you want to re-compute something, delete the corresponding result files first.
 }
 \description{
 Runs a reciprocal all-against-all BLAST search to look for similarity of proteins
@@ -56,7 +58,7 @@ For every pair of genomes a result file is produced. If two genomes have genome_
 and \samp{GID222} then the result file \samp{GID111_vs_GID222.txt} (or \samp{GID222_vs_GID111.txt}) will
 be found in \samp{out.folder} after the completion of this search.
 
-The \samp{out.folder} is scanned for already existing result files, and \code{\link{blastAllAll}} never
+The \samp{out.folder} is scanned for already existing result files, and \code{\link{blastpAllAll}} never
 overwrites an existing result file. If a file with the name \samp{GID111_vs_GID222.txt} already exists in
 the \samp{out.folder}, this particular search is skipped. This makes it possible to run multiple jobs in
 parallell, writing to the same \samp{out.folder}. It also makes it possible to add new genomes, and only
@@ -64,11 +66,11 @@ BLAST the new combinations without repeating previous comparisons.
 
 This search can be slow if the genomes contain many proteins and it scales quadratically in the number of
 input files. It is best suited for the study of a smaller number of genomes. By
-starting multiple R sessions, you can speed up the search by running \code{\link{blastAllAll}} from each R
+starting multiple R sessions, you can speed up the search by running \code{\link{blastpAllAll}} from each R
 session, using the same \samp{out.folder} but different integers for the \code{job} option. If you are
 using a computing cluster you can also increase the number of CPUs by increasing \code{threads}.
 
-The result files are text files, and can be read into R using \code{\link{readBlastTable}}, but more
+The result files are tab-separated text files, and can be read into R, but more
 commonly they are used as input to \code{\link{bDist}} to compute distances between sequences for subsequent
 clustering.
 }
@@ -81,11 +83,11 @@ run them in the Console window.
 \dontrun{
 # This example requires the external BLAST+ software
 # Using protein files in this package
-xpth <- file.path(path.package("micropan"),"extdata")
-pf <- file.path(xpth,c("Example_proteins_GID1.fasta.xz", "Example_proteins_GID2.fasta.xz", "Example_proteins_GID3.fasta.xz"))
+pf <- file.path(path.package("micropan"), "extdata",
+                str_c("xmpl_GID", 1:3, ".faa.xz"))
 
 # We need to uncompress them first...
-prot.files <- tempfile(fileext = c("_GID1.fasta.xz","_GID2.fasta.xz","_GID3.fasta.xz"))
+prot.files <- tempfile(fileext = c("_GID1.faa.xz","_GID2.faa.xz","_GID3.faa.xz"))
 ok <- file.copy(from = pf, to = prot.files)
 prot.files <- unlist(lapply(prot.files, xzuncompress))
 
@@ -94,7 +96,7 @@ out.dir <- "."
 blastpAllAll(prot.files, out.folder = out.dir)
 
 # Reading results, and computing blast.distances
-blast.files <- list.files(out.dir, pattern="GID[0-9]+_vs_GID[0-9]+.txt")
+blast.files <- list.files(out.dir, pattern = "GID[0-9]+_vs_GID[0-9]+.txt")
 blast.distances <- bDist(file.path(out.dir, blast.files))
 
 # ...and cleaning...
@@ -108,7 +110,7 @@ Camacho, C., Coulouris, G., Avagyan, V., Ma, N., Papadopoulos, J., Bealer, K., M
 (2009). BLAST+: architecture and applications. BMC Bioinformatics, 10:421.
 }
 \seealso{
-\code{\link{panPrep}}, \code{\link{readBlastTable}}, \code{\link{bDist}}.
+\code{\link{panPrep}}, \code{\link{bDist}}.
 }
 \author{
 Lars Snipen and Kristian Hovde Liland.

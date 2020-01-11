@@ -12,7 +12,7 @@ binomixEstimate(
 )
 }
 \arguments{
-\item{pan.matrix}{A \code{Panmat} object, see \code{\link{panMatrix}} for details.}
+\item{pan.matrix}{A pan-matrix, see \code{\link{panMatrix}} for details.}
 
 \item{K.range}{The range of model complexities to explore. The vector of integers specify the number
 of binomial densities to combine in the mixture models.}
@@ -24,26 +24,25 @@ since a core gene is by definition always present in all genomes, but can be set
 computations.}
 }
 \value{
-\code{\link{binomixEstimate}} returns a \code{Binomix} object, which is a small (S3) extension
-of a \code{list} with two components. These two components are named \samp{BIC.table} and \samp{Mix.list}.
+\code{\link{binomixEstimate}} returns a \code{list} with two components, the \samp{BIC.tbl}
+and \samp{Mix.tbl}.
 
-The \samp{BIC.table} is a matrix listing, in each row, the results for each number of components used,
-given by the input \samp{K.range}. The column \samp{Core.size} is the estimated number of core gene families,
-the column \samp{Pan.size} is the estimated pan-genome size. The column \samp{BIC} is the Bayesian
-Information Criterion (Schwarz, 1978) that should be used to choose the optimal value for \samp{K}.
-The number of components where \samp{BIC} is minimized is the optimal. If minimum \samp{BIC} is reached
-for the largest \samp{K} value you should extend the \samp{K.range} and re-fit. The function will issue
+The \samp{BIC.tbl} is a \code{tibble} listing, in each row, the results for each number of components
+used, given by the input \samp{K.range}. The column \samp{Core.size} is the estimated number of
+core gene families, the column \samp{Pan.size} is the estimated pan-genome size. The column
+\samp{BIC} is the Bayesian Information Criterion (Schwarz, 1978) that should be used to choose the
+optimal component number (\samp{K}). The number of components where \samp{BIC} is minimized is the
+optimum. If minimum \samp{BIC} is reached for the largest \samp{K} value you should extend the
+\samp{K.range} to larger values and re-fit. The function will issue
 a \code{warning} to remind you of this.
 
-The \samp{Mix.list} is a list with one element for each number of components tested. The content of each
-\samp{Mix.list} element is a matrix describing one particular fitted binomial mixture model. A fitted model
-is characterized by two vectors (rows) denoted \samp{Detect.prob} and \samp{Mixing.prop}. \samp{Detect.prob}
-are the estimated detection probabilities, sorted in ascending order. The \samp{Mixing.prop} are the
-corresponding mixing proportions. A mixing proportion is the proportion of the gene clusters having the
-corresponding detection probability.
-
-The generic functions \code{\link{plot.Binomix}} and \code{\link{summary.Binomix}}
-are available for \code{Binomix} objects.
+The \samp{Mix.tbl} is a \code{tibble} with estimates from the mixture models. The column \samp{Component}
+indicates the model, i.e. all rows where \samp{Component} has the same value are from the same model.
+There will be 3 rows for 3-component model, 4 rows for 4-component, etc. The column \samp{Detection.prob}
+contain the estimated detection probabilities for each component of the mixture models. A 
+\samp{Mixing.proportion} is the proportion of the gene clusters having the corresponding \samp{Detection.prob},
+i.e. if core genes have \samp{Detection.prob} 1.0, the corresponding \samp{Mixing.proportion} (same row)
+indicates how large fraction of the gene families are core genes.
 }
 \description{
 Fits binomial mixture models to the data given as a pan-matrix. From the fitted models
@@ -82,22 +81,32 @@ there, but your gene prediction has missed them. Notice that setting the \samp{c
 than 1.0 may affect the core gene size estimate dramatically.
 }
 \examples{
-# Loading a Panmat object in the micropan package
-data(list="Mpneumoniae.blast.panmat",package="micropan")
+# Loading an example pan-matrix
+data(xmpl.panmat)
 
 # Estimating binomial mixture models
-bino <- binomixEstimate(Mpneumoniae.blast.panmat,K.range=3:8)  # using 3,4,...,8 components
-print(bino$BIC.table) # minimum BIC at 3 components
+binmix.lst <- binomixEstimate(xmpl.panmat, K.range = 3:8)
+print(binmix.lst$BIC.tbl) # minimum BIC at 3 components
 
-# Plotting the optimal model, and printing the summary
-plot(bino)
-summary(bino)
-
-# Plotting the 8-component model as well
-plot(bino,ncomp=8)  # clearly overfitted, we do not need this many sectors
-
-# Plotting the distribution in a single genome
-plot(bino,type="single")  # completely dominated by core genes
+# The pan-genome gene distribution as a pie-chart
+ncomp <- 3
+binmix.lst$Mix.tbl \%>\% 
+  filter(Components == ncomp) \%>\% 
+  ggplot() +
+  geom_col(aes(x = "", y = Mixing.proportion, fill = Detection.prob)) +
+  coord_polar(theta = "y") +
+  labs(x = "", y = "", title = "Pan-genome gene distribution") +
+  scale_fill_gradientn(colors = c("pink", "orange", "green", "cyan", "blue"))
+  
+# The distribution in an average genome
+binmix.lst$Mix.tbl \%>\% 
+  filter(Components == ncomp) \%>\% 
+  mutate(Single = Mixing.proportion * Detection.prob) \%>\%
+  ggplot() +
+  geom_col(aes(x = "", y = Single, fill = Detection.prob)) +
+  coord_polar(theta = "y") +
+  labs(x = "", y = "", title = "Average genome gene distribution") +
+  scale_fill_gradientn(colors = c("pink", "orange", "green", "cyan", "blue"))
 
 }
 \references{
@@ -114,8 +123,7 @@ Escherichia coli. F1000 Research, 1:19.
 Schwarz, G. (1978). Estimating the Dimension of a Model. The Annals of Statistics, 6(2):461-464.
 }
 \seealso{
-\code{\link{panMatrix}}, \code{\link{chao}}, \code{\link{plot.Binomix}},
-\code{\link{summary.Binomix}}.
+\code{\link{panMatrix}}, \code{\link{chao}}.
 }
 \author{
 Lars Snipen and Kristian Hovde Liland.

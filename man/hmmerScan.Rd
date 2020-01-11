@@ -4,12 +4,12 @@
 \alias{hmmerScan}
 \title{Scanning a profile Hidden Markov Model database}
 \usage{
-hmmerScan(in.files, db, out.folder, threads = 0, verbose = TRUE)
+hmmerScan(in.files, dbase, out.folder, threads = 0, verbose = TRUE)
 }
 \arguments{
 \item{in.files}{A character vector of file names.}
 
-\item{db}{The full name of the database to scan.}
+\item{dbase}{The full name of the database to scan.}
 
 \item{out.folder}{The name of the folder to put the result files.}
 
@@ -23,7 +23,8 @@ never overwritten by \code{\link{hmmerScan}}, if you want to re-compute somethin
 corresponding result files first.
 }
 \description{
-Scanning FASTA formatted protein files against a database of pHMMs using the HMMER3 software.
+Scanning FASTA formatted protein files against a database of pHMMs using the HMMER3
+software.
 }
 \details{
 The HMMER3 software is purpose-made for handling profile Hidden Markov Models (pHMM)
@@ -55,35 +56,31 @@ The HMMER3 software must be installed on the system for this function to work, i
 }
 \examples{
 \dontrun{
-# This example requires the external HMMER software
-# Using two files in the micropan package
-xpth <- file.path(path.package("micropan"),"extdata")
-prot.file <- file.path(xpth,"Example_proteins_GID1.fasta.xz")
-db <- "microfam.hmm"
-db.files <- file.path(xpth,paste(db,c(".h3f.xz",".h3i.xz",".h3m.xz",".h3p.xz"),sep=""))
+# This example require the external software HMMER
+# Using example files in this package
+pf <- file.path(path.package("micropan"), "extdata", "xmpl_GID1.faa.xz")
+dbf <- file.path(path.package("micropan"), "extdata",
+                 str_c("microfam.hmm", c(".h3f.xz",".h3i.xz",".h3m.xz",".h3p.xz")))
 
 # We need to uncompress them first...
-prot.tf <- tempfile(pattern="GID1.fasta",fileext=".xz")
-s <- file.copy(prot.file,prot.tf)
-prot.tf <- xzuncompress(prot.tf)
-db.tf <- paste(tempfile(),c(".h3f.xz",".h3i.xz",".h3m.xz",".h3p.xz"),sep="")
-s <- file.copy(db.files,db.tf)
-db.tf <- unlist(lapply(db.tf,xzuncompress))
-db.name <- gsub("\\\\",.Platform$file.sep,sub(".h3f$","",db.tf[1]),fixed=T)
+prot.file <- tempfile(pattern = "GID1.faa", fileext=".xz")
+ok <- file.copy(from = pf, to = prot.file)
+prot.file <- xzuncompress(prot.file)
+db.files <- str_c(tempfile(), c(".h3f.xz",".h3i.xz",".h3m.xz",".h3p.xz"))
+ok <- file.copy(from = dbf, to = db.files)
+db.files <- unlist(lapply(db.files, xzuncompress))
+db.name <- str_remove(db.files[1], "\\\\.[a-z0-9]+$")
 
-# Scanning the FASTA-file against microfam0...
-tmp.dir <- tempdir()
-hmmerScan(in.files=prot.tf,db=db.name,out.folder=tmp.dir)
+# Scanning the FASTA file against microfam.hmm...
+hmmerScan(in.files = prot.file, dbase = db.name, out.folder = ".")
 
 # Reading results
-db.nm <- rev(unlist(strsplit(db.name,split=.Platform$file.sep)))[1]
-hmm.file <- file.path(tmp.dir,paste("GID1_vs_",db.nm,".txt",sep=""))
-hmm.tab <- readHmmer(hmm.file)
+hmm.file <- file.path(".", str_c("GID1_vs_", basename(db.name), ".txt"))
+hmm.tbl <- readHmmer(hmm.file)
 
 # ...and cleaning...
-s <- file.remove(prot.tf)
-s <- file.remove(sub(".xz","",db.tf))
-s <- file.remove(hmm.file)
+ok <- file.remove(prot.file)
+ok <- file.remove(str_remove(db.files, ".xz"))
 }
 
 }

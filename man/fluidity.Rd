@@ -7,12 +7,12 @@
 fluidity(pan.matrix, n.sim = 10)
 }
 \arguments{
-\item{pan.matrix}{A \code{Panmat} object, see \code{\link{panMatrix}} for details.}
+\item{pan.matrix}{A pan-matrix, see \code{\link{panMatrix}} for details.}
 
 \item{n.sim}{An integer specifying the number of random samples to use in the computations.}
 }
 \value{
-A list with two elements, the mean fluidity and its sample standard deviation over
+A vector with two elements, the mean fluidity and its sample standard deviation over
 the \samp{n.sim} computed values.
 }
 \description{
@@ -34,14 +34,11 @@ considered, not multiple occurrences.
 The input \samp{pan.matrix} is typically constructed by \code{\link{panMatrix}}.
 }
 \examples{
-# Loading two Panmat objects in the micropan package
-data(list=c("Mpneumoniae.blast.panmat","Mpneumoniae.domain.panmat"),package="micropan")
+# Loading a pan-matrix in this package
+data(xmpl.panmat)
 
-# Fluidity based on a BLAST clustering Panmat object
-fluid.blast <- fluidity(Mpneumoniae.blast.panmat)
-
-# Fluidity based on domain sequence clustering Panmat object
-fluid.domains <- fluidity(Mpneumoniae.domain.panmat)
+# Fluidity based on this pan-matrix
+fluid <- fluidity(xmpl.panmat)
 
 }
 \references{

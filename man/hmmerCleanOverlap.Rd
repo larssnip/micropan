@@ -4,13 +4,13 @@
 \alias{hmmerCleanOverlap}
 \title{Removing overlapping hits from HMMER3 scans}
 \usage{
-hmmerCleanOverlap(hmmer.table)
+hmmerCleanOverlap(hmmer.tbl)
 }
 \arguments{
 \item{hmmer.table}{A \code{data.frame} with \code{\link{hmmerScan}} results, see \code{\link{readHmmer}}.}
 }
 \value{
-A \code{data.frame} which is a subset of the input, where some rows have been deleted to
+A \code{tibble} which is a subset of the input, where some rows may have been deleted to
 avoid overlapping hits.
 }
 \description{
@@ -22,7 +22,7 @@ often find that several patterns (HMMs) match in the same region of the query se
 overlapping hits. The function \code{\link{hmmerCleanOverlap}} will remove the poorest overlapping hit
 in a recursive way such that all overlaps are eliminated.
 
-The input is a \code{data.frame} of the type produced by \code{\link{readHmmer}}.
+The input is a \code{tibble} of the type produced by \code{\link{readHmmer}}.
 }
 \examples{
 # See the example in the Help-file for dClust.

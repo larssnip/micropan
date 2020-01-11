@@ -16,7 +16,7 @@
 #' headerline will be discarded.
 #' 
 #' @details This function will read the \code{in.file} and produce another, slightly modified, FASTA file
-#' which is prepared for the comparisons using \code{\link{blastAllAll}}, \code{\link{hmmerScan}}
+#' which is prepared for the comparisons using \code{\link{blastpAllAll}}, \code{\link{hmmerScan}}
 #' or any other method.
 #' 
 #' The main purpose of \code{\link{panPrep}} is to make certain every sequence is labeled with a tag
@@ -34,26 +34,27 @@
 #' \code{\link{panPrep}} will also remove sequences shorter than \code{min.length}, removing stop codon
 #' symbols (\samp{*}), replacing alien characters with \samp{X} and converting all sequences to upper-case.
 #' If the input \samp{discard} contains a regular expression, any sequences having a match to this in their
-#' headerline are also removed. Example: If we use \code{\link{prodigal}} to find proteins in a
-#' genome, partially predicted genes will have the text \samp{partial=10} or \samp{partial=01} in their
-#' headerline. Using \samp{discard= "partial=01|partial=10"} will remove these from the data set.
+#' headerline are also removed. Example: If we use the \code{prodigal} software (see \code{\link[microseq]{findGenes}})
+#' to find proteins in a genome, partially predicted genes will have the text \samp{partial=10} or
+#' \samp{partial=01} in their headerline. Using \samp{discard= "partial=01|partial=10"} will remove
+#' these from the data set.
 #' 
 #' @return This function produces a FASTA formatted sequence file, and returns the name of this file.
 #' 
 #' @author Lars Snipen and Kristian Liland.
 #' 
-#' @seealso \code{\link{hmmerScan}}, \code{\link{blastAllAll}}.
+#' @seealso \code{\link{hmmerScan}}, \code{\link{blastpAllAll}}.
 #' 
 #' @examples
-#' # Using a protein file in the micropan package
+#' # Using a protein file in this package
 #' # We need to uncompress it first...
-#' pf <- file.path(file.path(path.package("micropan"),"extdata"),"Example_proteins.fasta.xz")
+#' pf <- file.path(path.package("micropan"),"extdata","xmpl.faa.xz")
 #' prot.file <- tempfile(fileext = ".xz")
 #' ok <- file.copy(from = pf, to = prot.file)
 #' prot.file <- xzuncompress(prot.file)
 #' 
 #' # Prepping it, using the genome_id "GID123"
-#' prepped.file <- panPrep(prot.file, genome_id = "GID123", out.file = tempfile(fileext = ".fasta"))
+#' prepped.file <- panPrep(prot.file, genome_id = "GID123", out.file = tempfile(fileext = ".faa"))
 #' 
 #' # Reading the prepped file
 #' prepped <- readFasta(prepped.file)
@@ -82,7 +83,7 @@ panPrep <- function(in.file, genome_id, out.file, protein = TRUE, min.length = 1
     mutate(Header = str_c(genome_id, "_seq", 1:n(), " ", Header)) -> fdta
   if(str_length(discard) > 0){
     fdta %>%
-      filter(str_detect(Header, pattern = discard, negate = T)) -> fdta
+      filter(!str_detect(Header, pattern = discard)) -> fdta
   }
   fext <- str_extract(out.file, "\\.[a-zA-Z]+$")
   out.file <- str_replace(out.file, fext, str_c("_", genome_id, fext))

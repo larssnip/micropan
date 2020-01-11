@@ -4,14 +4,14 @@
 \alias{dClust}
 \title{Clustering sequences based on domain sequence}
 \usage{
-dClust(hmmer.table)
+dClust(hmmer.tbl)
 }
 \arguments{
-\item{hmmer.table}{A \code{data.frame} of results from a \code{\link{hmmerScan}} against a domain database.}
+\item{hmmer.tbl}{A \code{tibble} of results from a \code{\link{hmmerScan}} against a domain database.}
 }
 \value{
 The output is a numeric vector with one element for each unique sequence in the \samp{Query}
-column of the input \samp{hmmer.table}. Sequences with identical number belong to the same cluster. The
+column of the input \samp{hmmer.tbl}. Sequences with identical number belong to the same cluster. The
 name of each element identifies the sequence.
 
 This vector also has an attribute called \samp{cluster.info} which is a character vector containing the
@@ -32,37 +32,35 @@ their amino acid sequence, and still share the same domains. Describing, and gro
 domain sequence was proposed by Snipen & Ussery (2012) as an alternative to clusters based on pairwise
 alignments, see \code{\link{bClust}}. Domain sequence clusters are less influenced by gene prediction errors.
 
-The input is a \code{data.frame} of the type produced by \code{\link{readHmmer}}. Typically, it is the
+The input is a \code{tibble} of the type produced by \code{\link{readHmmer}}. Typically, it is the
 result of scanning proteins (using \code{\link{hmmerScan}}) against Pfam-A or any other HMMER3 database
-of protein domains. It is highly reccomended that you remove overlapping hits in \samp{hmmer.table} before
+of protein domains. It is highly reccomended that you remove overlapping hits in \samp{hmmer.tbl} before
 you pass it as input to \code{\link{dClust}}. Use the function \code{\link{hmmerCleanOverlap}} for this.
 Overlapping hits are in some cases real hits, but often the poorest of them are artifacts.
 }
 \examples{
-# Using HMMER3 result files in the micropan package
-xpth <- file.path(path.package("micropan"),"extdata")
-hmm.files <- file.path(xpth,c("GID1_vs_Pfam-A.hmm.txt.xz",
-                              "GID2_vs_Pfam-A.hmm.txt.xz",
-                              "GID3_vs_Pfam-A.hmm.txt.xz"))
+# HMMER3 result files in this package
+hf <- file.path(path.package("micropan"), "extdata", 
+                str_c("GID", 1:3, "_vs_Pfam-A.hmm.txt.xz"))
 
 # We need to uncompress them first...
-tf <- tempfile(fileext=rep(".xz",length(hmm.files)))
-s <- file.copy(hmm.files,tf)
-tf <- unlist(lapply(tf,xzuncompress))
+hmm.files <- tempfile(fileext = rep(".xz", length(hf)))
+ok <- file.copy(from = hf, to = hmm.files)
+hmm.files <- unlist(lapply(hmm.files, xzuncompress))
 
 # Reading the HMMER3 results, cleaning overlaps...
-hmmer.table <- NULL
+hmmer.tbl <- NULL
 for(i in 1:3){
-  htab <- readHmmer(tf[i])
-  htab <- hmmerCleanOverlap(htab)
-  hmmer.table <- rbind(hmmer.table,htab)
+  readHmmer(hmm.files[i]) \%>\% 
+    hmmerCleanOverlap() \%>\% 
+    bind_rows(hmmer.tbl) -> hmmer.tbl
 }
 
 # The clustering
-clustering.domains <- dClust(hmmer.table)
+clustering.domains <- dClust(hmmer.tbl)
 
 # ...and cleaning...
-s <- file.remove(tf)
+ok <- file.remove(hmm.files)
 
 }
 \references{

@@ -10,8 +10,8 @@ isOrtholog(clustering, dist.tbl)
 \item{clustering}{A vector of integers indicating the cluster for every sequence. Sequences with
 the same number belong to the same cluster. The name of each element is the tag identifying the sequence.}
 
-\item{dist.tbl}{A \code{tibble} with pairwise distances. The columns \samp{Sequence.A} and
-\samp{Sequence.B} contain tags identifying pairs of sequences. The column \samp{Distance} contains the
+\item{dist.tbl}{A \code{tibble} with pairwise distances. The columns \samp{Query} and
+\samp{Hit} contain tags identifying pairs of sequences. The column \samp{Distance} contains the
 distances, always a number from 0.0 to 1.0.}
 }
 \value{
@@ -42,10 +42,10 @@ tight and homogenous (and many) clusters, almost all sequences will be orthologs
 \examples{
 \dontrun{
 # Loading distance data in the micropan package
-data(list = c("Mpneumoniae.blast.distances","Mpneumoniae.blast.clustering"), package = "micropan")
+data(list = c("Buchnera.bdist","Buchnera.bclst"))
 
 # Finding orthologs
-is.ortholog <- isOrtholog(Mpneumoniae.blast.clustering, Mpneumoniae.blast.distances)
+is.ortholog <- isOrtholog(Buchnera.bclst, Buchnera.bdist)
 }
 
 }

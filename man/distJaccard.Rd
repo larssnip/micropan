@@ -7,7 +7,7 @@
 distJaccard(pan.matrix)
 }
 \arguments{
-\item{pan.matrix}{A \code{Panmat} object, see \code{\link{panMatrix}} for details.}
+\item{pan.matrix}{A pan-matrix, see \code{\link{panMatrix}} for details.}
 }
 \value{
 A \code{dist} object (see \code{\link{dist}}) containing all pairwise Jaccard distances
@@ -17,7 +17,7 @@ between genomes.
 Computes the Jaccard distances between all pairs of genomes.
 }
 \details{
-The Jaccard index between two sets is defined as the size of the interesection of
+The Jaccard index between two sets is defined as the size of the intersection of
 the sets divided by the size of the union. The Jaccard distance is simply 1 minus the Jaccard index.
 
 The Jaccard distance between two genomes describes their degree of overlap with respect to gene
@@ -31,14 +31,14 @@ occurrences.
 The input \samp{pan.matrix} is typically constructed by \code{\link{panMatrix}}.
 }
 \examples{
-# Loading two Panmat objects in the micropan package
-data(list=c("Mpneumoniae.blast.panmat","Mpneumoniae.domain.panmat"),package="micropan")
+# Loading a pan-matrix in this package
+data(xmpl.panmat)
 
-# Jaccard distances based on a BLAST clustering Panmat object
-Jdist.blast <- distJaccard(Mpneumoniae.blast.panmat)
+# Jaccard distances
+Jdist <- distJaccard(xmpl.panmat)
 
-# Jaccard distances based on domain sequence clustering Panmat object
-Jdist.domains <- distJaccard(Mpneumoniae.domain.panmat) 
+# Making a dendrogram based on the distances,
+# see example for distManhattan
 
 }
 \seealso{

@@ -39,27 +39,23 @@
 #' prefix <- c("GID1_vs_GID1.txt",
 #'             "GID1_vs_GID2.txt",
 #'             "GID1_vs_GID3.txt",
-#'             "GID2_vs_GID1.txt",
 #'             "GID2_vs_GID2.txt",
 #'             "GID2_vs_GID3.txt",
-#'             "GID3_vs_GID1.txt",
-#'             "GID3_vs_GID2.txt",
 #'             "GID3_vs_GID3.txt")
-#' xpth <- file.path(path.package("micropan"),"extdata")
-#' bf <- file.path(xpth, paste0(prefix, ".xz"))
+#' bf <- file.path(path.package("micropan"), "extdata", str_c(prefix, ".xz"))
 #' 
 #' # We need to uncompress them first...
-#' blast.files <- tempfile(pattern=prefix,fileext=".xz")
+#' blast.files <- tempfile(pattern = prefix, fileext = ".xz")
 #' ok <- file.copy(from = bf, to = blast.files)
 #' blast.files <- unlist(lapply(blast.files, xzuncompress))
 #' 
 #' # Computing pairwise distances
-#' blast.distances <- bDist(blast.files)
+#' blast.dist <- bDist(blast.files)
 #' 
 #' # ...and cleaning...
-#' s <- file.remove(tf)
+#' ok <- file.remove(blast.files)
 #' 
-#' # See also example for blastAllAll
+#' # See also example for blastpAllAll
 #' 
 #' @importFrom tibble tibble
 #' @importFrom stringr str_extract
@@ -75,8 +71,7 @@ bDist <- function(blast.files, e.value = 1, verbose = TRUE){
   slf.tbl <- NULL
   max.tbl <- NULL
   for(i in 1:length(self.idx)){
-    if(verbose) cat("   ...reading file", blast.files[self.idx[i]], "\n")
-    suppressMessages(read_delim(blast.files[self.idx[i]], delim = "\t",
+    suppressMessages(read_delim(blast.files[self.idx[i]], delim = "\t", trim_ws = T,
                                col_names = c("Query", "Hit", "Evalue", "Bitscore"))) %>% 
       filter(Evalue <= e.value) %>% 
       arrange(desc(Bitscore)) %>% 
@@ -98,7 +93,7 @@ bDist <- function(blast.files, e.value = 1, verbose = TRUE){
   crss.tbl <- NULL
   for(i in 1:length(blast.files)){
     if(!(i %in% self.idx)){
-      suppressMessages(read_delim(blast.files[i], delim = "\t",
+      suppressMessages(read_delim(blast.files[i], delim = "\t", trim_ws = T,
                                   col_names = c("Query", "Hit", "Evalue", "Bitscore"))) %>% 
         filter(Evalue <= e.value) %>% 
         arrange(desc(Bitscore)) %>% 

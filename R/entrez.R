@@ -21,12 +21,11 @@
 #' accession numbers must be split into several comma-separated texts. The reason for this is that Entrez
 #' will not accept too many queries in one chunk. 
 #' 
-#' The downloaded sequences are saved in \samp{file} on your system. This will be a FASTA formatted file,
-#' and should by convention have the filename extension \samp{.fsa}. Note that all downloaded sequences end
-#' up in this file. If you want to download multiple genomes, you call \code{\link{entrezDownload}} multiple
-#' times.
+#' The downloaded sequences are saved in \samp{out.file} on your system. This will be a FASTA formatted file.
+#' Note that all downloaded sequences end up in this file. If you want to download multiple genomes,
+#' you call \code{\link{entrezDownload}} multiple times and store in multiple files.
 #' 
-#' @return The name of the resulting FASTA file is returned (same as \code{file}), but the real result of
+#' @return The name of the resulting FASTA file is returned (same as \code{out.file}), but the real result of
 #' this function is the creation of the file itself.
 #' 
 #' @author Lars Snipen and Kristian Liland.
@@ -36,15 +35,11 @@
 #' @examples 
 #' # Accession numbers for the chromosome and plasmid of Buchnera aphidicola, strain APS
 #' acc <- "BA000003.2,AP001071.1"
-#' tf <- tempfile(pattern="Buchnera_aphidicola",fileext=".fasta")
-#' txt <- entrezDownload(acc,out.file=tf)
-#' 
-#' # Reading file to inspect
-#' genome <- readFasta(tf)
-#' summary(genome)
+#' genome.file <- tempfile(pattern = "Buchnera_aphidicola", fileext = ".fna")
+#' txt <- entrezDownload(acc, out.file = genome.file)
 #' 
 #' # ...cleaning...
-#' s <- file.remove(tf)
+#' ok <- file.remove(genome.file)
 #' 
 #' @export entrezDownload
 #' 
@@ -88,10 +83,10 @@ entrezDownload <- function(accession, out.file, verbose = TRUE){
 #' The download API at NCBI will not tolerate too many accessions per query, and for this reason you need
 #' to split the accessions for many contigs into several texts using \code{chunk.size}.
 #' 
-#' @return A character vector where each element is a text listing the accession numbers separated by commas.
-#' Each vector element will contain no more than \code{chunk.size} accession numbers, see \code{\link{entrezDownload}}
-#' for details on this. The vector returned by \code{\link{getAccessions}} is typically used as input to
-#' \code{\link{entrezDownload}}.
+#' @return A character vector where each element is a text listing the accession numbers separated by comma.
+#' Each vector element will contain no more than \code{chunk.size} accession numbers, see 
+#' \code{\link{entrezDownload}} for details on this. The vector returned by \code{\link{getAccessions}}
+#' is typically used as input to \code{\link{entrezDownload}}.
 #' 
 #' @author Lars Snipen and Kristian Liland.
 #' 
@@ -101,28 +96,24 @@ entrezDownload <- function(accession, out.file, verbose = TRUE){
 #' # The master record accession for the WGS genome Mycoplasma genitalium, strain G37
 #' acc <- getAccessions("AAGX00000000")
 #' # Then we use this to download all contigs and save them
-#' tf <- tempfile(fileext=".fasta")
-#' txt <- entrezDownload(acc,out.file=tf)
-#' 
-#' # Reading the file to inspect it
-#' genome <- readFasta(tf)
-#' summary(genome)
+#' genome.file <- tempfile(fileext = ".fna")
+#' txt <- entrezDownload(acc, out.file = genome.file)
 #' 
 #' # ...cleaning...
-#' s <- file.remove(tf)
+#' ok <- file.remove(genome.file)
 #' 
-#' @importFrom microseq gregexpr
+#' @importFrom stringr str_c str_detect str_extract str_sub str_remove str_split
 #' 
 #' @export getAccessions
 #' 
 getAccessions <- function(master.record.accession, chunk.size = 99){
-  adrId <- paste0("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=nuccore",
+  adrId <- str_c("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=nuccore",
                   "&term=", master.record.accession)
   idSearch <- url(adrId, open = "rt")
   if(isOpen(idSearch)){
     idDoc <- readLines(idSearch)
-    idLine <- which(regexpr("<Id>+",idDoc) == 1)[1]
-    id <- substr(idDoc[idLine], 5, nchar(idDoc[idLine]) - 5)
+    idLine <- which(str_detect(idDoc, "<Id>+"))[1]
+    id <- str_sub(idDoc[idLine], 5, -6)
     close(idSearch)
   } else {
     cat("Download failed: Could not open connection\n")
@@ -130,20 +121,20 @@ getAccessions <- function(master.record.accession, chunk.size = 99){
     return(NULL)
   }
 
-  adr <- paste0("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore",
-                "&id=", id,
-                "&retmode=text",
-                "&rettype=gb")
+  adr <- str_c("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore",
+               "&id=", id,
+               "&retmode=text",
+               "&rettype=gb")
   entrez <- url(adr, open = "rt")
   accessions <- ""
   if(isOpen(entrez)){
     lines <- readLines(entrez)
     close(entrez)
-    wgs.line <- gsub("WGS[ ]+", "", lines[grep("WGS   ", lines )])
-    ss <- unlist(strsplit(wgs.line, split = "-" ))
-    head <- gregexpr("[A-Z]+[0]+", ss[1], extract = T)
-    ss.num <- as.numeric(gsub( "^[A-Z]+[0]+", "", ss))
-    if(length( ss.num ) > 1){
+    wgs.line <- str_remove(lines[str_detect(lines, pattern = "WGS   ")], "WGS[ ]+")
+    ss <- str_split(wgs.line, pattern = "-", simplify = T)
+    head <- str_extract(ss[1], "[A-Z]+[0]+")
+    ss.num <- as.numeric(str_remove(ss, "^[A-Z]+[0]+"))
+    if(length(ss.num) > 1){
       range <- ss.num[1]:ss.num[2]
     } else {
       range <- ss.num
@@ -151,9 +142,9 @@ getAccessions <- function(master.record.accession, chunk.size = 99){
     ns <- ceiling(length(range)/chunk.size)
     accessions <- character(ns)
     for(j in 1:ns){
-      s1 <- (j-1)*chunk.size + 1
-      s2 <- min(j*chunk.size, length(range))
-      accessions[j] <- paste(paste(head, range[s1]:range[s2], sep = ""), collapse = ",")
+      s1 <- (j-1) * chunk.size + 1
+      s2 <- min(j * chunk.size, length(range))
+      accessions[j] <- str_c(str_c(head, range[s1]:range[s2]), collapse = ",")
     }
   } else {
     close(entrez)

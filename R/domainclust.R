@@ -5,7 +5,7 @@
 #' ordered sequence of domains in the protein. All proteins having identical domain sequence are assigned
 #' to the same cluster.
 #' 
-#' @param hmmer.table A \code{data.frame} of results from a \code{\link{hmmerScan}} against a domain database.
+#' @param hmmer.tbl A \code{tibble} of results from a \code{\link{hmmerScan}} against a domain database.
 #' 
 #' @details A domain sequence is simply the ordered list of domains occurring in a protein. Not all proteins
 #' contain known domains, but those who do will have from one to several domains, and these can be ordered
@@ -14,14 +14,14 @@
 #' domain sequence was proposed by Snipen & Ussery (2012) as an alternative to clusters based on pairwise
 #' alignments, see \code{\link{bClust}}. Domain sequence clusters are less influenced by gene prediction errors.
 #' 
-#' The input is a \code{data.frame} of the type produced by \code{\link{readHmmer}}. Typically, it is the
+#' The input is a \code{tibble} of the type produced by \code{\link{readHmmer}}. Typically, it is the
 #' result of scanning proteins (using \code{\link{hmmerScan}}) against Pfam-A or any other HMMER3 database
-#' of protein domains. It is highly reccomended that you remove overlapping hits in \samp{hmmer.table} before
+#' of protein domains. It is highly reccomended that you remove overlapping hits in \samp{hmmer.tbl} before
 #' you pass it as input to \code{\link{dClust}}. Use the function \code{\link{hmmerCleanOverlap}} for this.
 #' Overlapping hits are in some cases real hits, but often the poorest of them are artifacts.
 #' 
 #' @return The output is a numeric vector with one element for each unique sequence in the \samp{Query}
-#' column of the input \samp{hmmer.table}. Sequences with identical number belong to the same cluster. The
+#' column of the input \samp{hmmer.tbl}. Sequences with identical number belong to the same cluster. The
 #' name of each element identifies the sequence.
 #' 
 #' This vector also has an attribute called \samp{cluster.info} which is a character vector containing the
@@ -38,44 +38,41 @@
 #' \code{\link{hmmerCleanOverlap}}, \code{\link{bClust}}.
 #' 
 #' @examples 
-#' # Using HMMER3 result files in the micropan package
-#' xpth <- file.path(path.package("micropan"),"extdata")
-#' hmm.files <- file.path(xpth,c("GID1_vs_Pfam-A.hmm.txt.xz",
-#'                               "GID2_vs_Pfam-A.hmm.txt.xz",
-#'                               "GID3_vs_Pfam-A.hmm.txt.xz"))
+#' # HMMER3 result files in this package
+#' hf <- file.path(path.package("micropan"), "extdata", 
+#'                 str_c("GID", 1:3, "_vs_Pfam-A.hmm.txt.xz"))
 #' 
 #' # We need to uncompress them first...
-#' tf <- tempfile(fileext=rep(".xz",length(hmm.files)))
-#' s <- file.copy(hmm.files,tf)
-#' tf <- unlist(lapply(tf,xzuncompress))
+#' hmm.files <- tempfile(fileext = rep(".xz", length(hf)))
+#' ok <- file.copy(from = hf, to = hmm.files)
+#' hmm.files <- unlist(lapply(hmm.files, xzuncompress))
 #' 
 #' # Reading the HMMER3 results, cleaning overlaps...
-#' hmmer.table <- NULL
+#' hmmer.tbl <- NULL
 #' for(i in 1:3){
-#'   htab <- readHmmer(tf[i])
-#'   htab <- hmmerCleanOverlap(htab)
-#'   hmmer.table <- rbind(hmmer.table,htab)
+#'   readHmmer(hmm.files[i]) %>% 
+#'     hmmerCleanOverlap() %>% 
+#'     bind_rows(hmmer.tbl) -> hmmer.tbl
 #' }
 #' 
 #' # The clustering
-#' clustering.domains <- dClust(hmmer.table)
+#' clustering.domains <- dClust(hmmer.tbl)
 #' 
 #' # ...and cleaning...
-#' s <- file.remove(tf)
+#' ok <- file.remove(hmm.files)
 #' 
 #' @export dClust
 #' 
-dClust <- function(hmmer.table){
-  cat("dClust:\n")
-  cat("...hmmer.table contains", length(unique(hmmer.table$Query)), "proteins...\n")
-  cat("...with hits against", length(unique(hmmer.table$Hit)), "HMMs...\n")
-  hmmer.table <- hmmer.table[order(hmmer.table$Start),]
-  dseq <- sort(unlist(tapply(hmmer.table$Hit, hmmer.table$Query, function(x){ paste(x, collapse = ",")})))
-  seq <- names(dseq)
-  dsc <- as.numeric(factor(as.vector(dseq)))
-  names(dsc) <- seq
-  cat("...ended with", length(unique(dsc)), "clusters, largest cluster has", max(table(dsc)), "members\n")
-  attr(dsc, "cluster.info") <- unique(as.vector(dseq))
+dClust <- function(hmmer.tbl){
+  hmmer.tbl %>% 
+    arrange(Start) %>% 
+    group_by(Query) %>% 
+    summarize(Dom.seq = str_c(Hit, collapse = ",")) %>% 
+    mutate(Cluster = as.integer(factor(Dom.seq, levels = unique(Dom.seq)))) -> tbl
+
+  dsc <- tbl$Cluster
+  names(dsc) <- tbl$Query
+  attr(dsc, "cluster.info") <- unique(tbl$Dom.seq)
   return(dsc)
 }
 
@@ -92,9 +89,9 @@ dClust <- function(hmmer.table){
 #' overlapping hits. The function \code{\link{hmmerCleanOverlap}} will remove the poorest overlapping hit
 #' in a recursive way such that all overlaps are eliminated.
 #' 
-#' The input is a \code{data.frame} of the type produced by \code{\link{readHmmer}}.
+#' The input is a \code{tibble} of the type produced by \code{\link{readHmmer}}.
 #' 
-#' @return A \code{data.frame} which is a subset of the input, where some rows have been deleted to
+#' @return A \code{tibble} which is a subset of the input, where some rows may have been deleted to
 #' avoid overlapping hits.
 #' 
 #' @author Lars Snipen and Kristian Hovde Liland.
@@ -103,56 +100,50 @@ dClust <- function(hmmer.table){
 #' 
 #' @examples # See the example in the Help-file for dClust.
 #' 
-#' @export
-hmmerCleanOverlap <- function(hmmer.table){
-  qt <- table(hmmer.table$Query)
-  cat("There are", length(qt), "proteins in this hmmer.table...\n")
-  hmmer.table <- hmmer.table[order( hmmer.table$Start ),]
+#' @importFrom dplyr filter select %>% 
+#' 
+#' @export hmmerCleanOverlap
+#' 
+hmmerCleanOverlap <- function(hmmer.tbl){
+  qt <- table(hmmer.tbl$Query)
   if(max(qt) > 1){
-    idx <- which(qt > 1)
-    multi <- names(qt)[idx]
-    nm <- length(multi)
-    cat("There are", nm, "proteins with multiple hits, resolving overlaps:\n")
-    keep <- rep(T, dim(hmmer.table)[1])
-    for(i in 1:nm){
-      idx <- which(hmmer.table$Query == multi[i])
-      keep[idx] <- nonoverlap(hmmer.table[idx,])
-      cat( i, "/", nm, "\r")
+    multi <- names(qt[qt > 1])
+    hmmer.tbl$Keep <- TRUE
+    for(i in 1:length(multi)){
+      idx <- which(hmmer.tbl$Query == multi[i])
+      hmmer.tbl$Keep[idx] <- keeper(hmmer.tbl[idx,])
     }
-    hmmer.table <- hmmer.table[keep,]
+    hmmer.tbl %>% 
+      filter(Keep) %>% 
+      select(-Keep) -> hmmer.tbl
   }
-  return(hmmer.table)
-}
+  return(hmmer.tbl)
+} 
 
-nonoverlap <- function(hmmer.table){
-  nh <- dim(hmmer.table)[1]
-  keep <- rep(T, nh)
-  ht <- hmmer.table[keep,]
-  dif <- ht$Start[2:nh] - ht$Stop[1:(nh-1)]
-  ido <- which(dif <= 0)
-  while((nh > 1) & (length(ido) > 0)){
-    idx <- unique(c(ido, ido+1))
-    idd <- which(ht$Evalue[idx] == max(ht$Evalue[idx]))
-    map <- which(keep)
-    keep[map[idx[idd[1]]]] <- F
-    ht <- hmmer.table[keep,]
-    nh <- dim(ht)[1]
-    if(nh > 1){
-      dif <- ht$Start[2:nh] - ht$Stop[1:(nh-1)]
-      ido <- which(dif <= 0)
+
+
+# Local functions
+keeper<- function(hmmer.tbl){
+  hmmer.tbl$Overlaps <- overlapper(hmmer.tbl)
+  while((sum(hmmer.tbl$Keep) > 1) & (sum(hmmer.tbl$Overlaps) > 0)){
+    idx <- which(hmmer.tbl$Overlaps)
+    idd <- which(hmmer.tbl$Evalue[idx] == max(hmmer.tbl$Evalue[idx]))
+    hmmer.tbl$Keep[idx[idd[1]]] <- F
+    hmmer.tbl$Overlaps <- overlapper(hmmer.tbl)
+  }
+  return(hmmer.tbl$Keep)
+}
+overlapper <- function(hmmer.tbl){
+  olaps <- rep(FALSE, nrow(hmmer.tbl))
+  idx <- which(hmmer.tbl$Keep)
+  if(length(idx) > 1){
+    ht <- slice(hmmer.tbl, idx)
+    for(i in 1:nrow(ht)){
+      ovr <- ((ht$Start[i] <= ht$Stop[-i]) & (ht$Start[i] >= ht$Start[-i])) |
+        ((ht$Stop[i] <= ht$Stop[-i]) & (ht$Stop[i] >= ht$Start[-i])) |
+        ((ht$Start[i] <= ht$Start[-i]) & (ht$Stop[i] >= ht$Stop[-i]))
+      olaps[idx[i]] <- ovr && ovr
     }
   }
-  return(keep)
+  return(olaps)
 }
-
-
-
-
-
-
-
-
-
-
-
-

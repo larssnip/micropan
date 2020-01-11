@@ -13,10 +13,10 @@ the WGS entry specifying the accession numbers to all contigs of the WGS genome.
 \item{chunk.size}{The maximum number of accession numbers returned in one text.}
 }
 \value{
-A character vector where each element is a text listing the accession numbers separated by commas.
-Each vector element will contain no more than \code{chunk.size} accession numbers, see \code{\link{entrezDownload}}
-for details on this. The vector returned by \code{\link{getAccessions}} is typically used as input to
-\code{\link{entrezDownload}}.
+A character vector where each element is a text listing the accession numbers separated by comma.
+Each vector element will contain no more than \code{chunk.size} accession numbers, see 
+\code{\link{entrezDownload}} for details on this. The vector returned by \code{\link{getAccessions}}
+is typically used as input to \code{\link{entrezDownload}}.
 }
 \description{
 Retrieving the accession numbers for all contigs from a master record GenBank file.
@@ -34,15 +34,11 @@ to split the accessions for many contigs into several texts using \code{chunk.si
 # The master record accession for the WGS genome Mycoplasma genitalium, strain G37
 acc <- getAccessions("AAGX00000000")
 # Then we use this to download all contigs and save them
-tf <- tempfile(fileext=".fasta")
-txt <- entrezDownload(acc,out.file=tf)
-
-# Reading the file to inspect it
-genome <- readFasta(tf)
-summary(genome)
+genome.file <- tempfile(fileext = ".fna")
+txt <- entrezDownload(acc, out.file = genome.file)
 
 # ...cleaning...
-s <- file.remove(tf)
+ok <- file.remove(genome.file)
 
 }
 \seealso{

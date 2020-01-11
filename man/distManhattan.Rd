@@ -4,10 +4,10 @@
 \alias{distManhattan}
 \title{Computing Manhattan distances between genomes}
 \usage{
-distManhattan(pan.matrix, scale = 0, weights = rep(1, dim(pan.matrix)[2]))
+distManhattan(pan.matrix, scale = 0, weights = rep(1, ncol(pan.matrix)))
 }
 \arguments{
-\item{pan.matrix}{A \code{Panmat} object, see \code{\link{panMatrix}} for details.}
+\item{pan.matrix}{A pan-matrix, see \code{\link{panMatrix}} for details.}
 
 \item{scale}{An optional scale to control how copy numbers should affect the distances.}
 
@@ -48,19 +48,22 @@ default is to use flat weights, i.e. all clusters count equal. See \code{\link{g
 alternative weighting strategies.
 }
 \examples{
-# Loading two Panmat objects in the micropan package
-data(list=c("Mpneumoniae.blast.panmat","Mpneumoniae.domain.panmat"),package="micropan")
+# Loading a pan-matrix in this package
+data(xmpl.panmat)
 
-# Manhattan distances based on a BLAST clustering Panmat object
-Mdist.blast <- distManhattan(Mpneumoniae.blast.panmat)
+# Manhattan distances between genomes
+Mdist <- distManhattan(xmpl.panmat)
 
-# Manhattan distances based on domain sequence clustering Panmat object
-Mdist.domains <- distManhattan(Mpneumoniae.domain.panmat,scale=0.5)
+# Making a dendrogram based on shell-weighted distances
+weights <- geneWeights(xmpl.panmat, type = "shell")
+Mdist <- distManhattan(xmpl.panmat, weights = weights)
+ggdendrogram(dendro_data(hclust(Mdist, method = "average")),
+  rotate = TRUE, theme_dendro = FALSE) +
+  labs(x = "Genomes", y = "Shell-weighted Manhattan distance", title = "Pan-genome dendrogram")
 
 }
 \seealso{
-\code{\link{panMatrix}}, \code{\link{distJaccard}}, \code{\link{geneWeights}},
-\code{\link{panTree}}.
+\code{\link{panMatrix}}, \code{\link{distJaccard}}, \code{\link{geneWeights}}.
 }
 \author{
 Lars Snipen and Kristian Hovde Liland.

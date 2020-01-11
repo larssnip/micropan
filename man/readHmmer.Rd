@@ -14,16 +14,13 @@ readHmmer(hmmer.file, e.value = 1, use.acc = TRUE)
 \item{use.acc}{Logical indicating if accession numbers should be used to identify the hits.}
 }
 \value{
-The results are returned in a \samp{data.frame} with columns \samp{Query}, \samp{Hit},
-\samp{Evalue}, \samp{Score}, \samp{Start}, \samp{Stop}, \samp{Description}. \samp{Query} is the tag
-identifying each sequence in each genome, typically \samp{GID111_seq1}, \samp{GID121_seq3}, etc.
-\samp{Hit} is the name or accession number for a pHMM in the database describing patterns. The
-\samp{Evalue} is the \samp{ievalue} in the HMMER3 terminology. The \samp{Score} is the HMMER3 score for
-the match between \samp{Query} and \samp{Hit}. The \samp{Start} and \samp{Stop} are the positions
-within the \samp{Query} where the \samp{Hit} (pattern) starts and stops. \samp{Description} is the
-description of the \samp{Hit}.
-
-There is one line for each hit.
+The results are returned in a \samp{tibble} with columns \samp{Query}, \samp{Hit},
+\samp{Evalue}, \samp{Score}, \samp{Start}, \samp{Stop} and \samp{Description}. \samp{Query} is the tag
+identifying each query sequence. \samp{Hit} is the name or accession number for a pHMM in the database
+describing patterns. The \samp{Evalue} is the \samp{ievalue} in the HMMER3 terminology. The \samp{Score}
+is the HMMER3 score for the match between \samp{Query} and \samp{Hit}. The \samp{Start} and \samp{Stop}
+are the positions within the \samp{Query} where the \samp{Hit} (pattern) starts and stops.
+\samp{Description} is the description of the \samp{Hit}. There is one line for each hit.
 }
 \description{
 Reading a text file produced by \code{\link{hmmerScan}}.

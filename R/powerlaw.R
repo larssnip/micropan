@@ -3,14 +3,14 @@
 #' 
 #' @description Computes the Chao lower bound estimated number of gene clusters in a pan-genome.
 #' 
-#' @param pan.matrix A \code{Panmat} object, see \code{\link{panMatrix}} for details.
+#' @param pan.matrix A pan-matrix, see \code{\link{panMatrix}} for details.
 #' 
 #' @details The size of a pan-genome is the number of gene clusters in it, both those observed and those
 #' not yet observed.
 #' 
-#' The input \samp{pan.matrix} is a \code{Panmat} object, i.e. it is a matrix with one row for each
+#' The input \samp{pan.matrix} is a a matrix with one row for each
 #' genome and one column for each observed gene cluster in the pan-genome. See \code{\link{panMatrix}}
-#' for how to construct such objects.
+#' for how to construct this.
 #' 
 #' The number of observed gene clusters is simply the number of columns in \samp{pan.matrix}. The
 #' number of gene clusters not yet observed is estimated by the Chao lower bound estimator (Chao, 1987).
@@ -28,22 +28,22 @@
 #' @seealso \code{\link{panMatrix}}, \code{\link{binomixEstimate}}.
 #' 
 #' @examples 
-#' # Loading a Panmat object in the micropan package
-#' data(list="Mpneumoniae.blast.panmat",package="micropan")
+#' # Loading a pan-matrix in this package
+#' data(xmpl.panmat)
 #' 
 #' # Estimating the pan-genome size using the Chao estimator
-#' chao.pansize <- chao(Mpneumoniae.blast.panmat)
+#' chao.pansize <- chao(xmpl.panmat)
 #' 
-#' @export
-chao <- function( pan.matrix ){  
-  pan.matrix[which( pan.matrix > 0, arr.ind=T )] <- 1
-  y <- table( factor( colSums( pan.matrix ), levels=1:dim( pan.matrix )[1] ) )
-  if( y[2]==0 ){
+#' @export chao
+#' 
+chao <- function(pan.matrix){  
+  y <- table(factor(colSums(pan.matrix > 0), levels = 1:nrow(pan.matrix)))
+  if(y[2] == 0){
     stop( "Cannot compute Chao estimate since there are 0 gene clusters observed in 2 genomes!\n" )
   } else {
-    pan.size <- round( sum( y ) + y[1]^2/(2*y[2]) )
-    names( pan.size ) <- NULL
-    return( pan.size )
+    pan.size <- round(sum(y) + y[1]^2/(2*y[2]))
+    names(pan.size) <- NULL
+    return(pan.size)
   }
 }
 
@@ -53,7 +53,7 @@ chao <- function( pan.matrix ){
 #' 
 #' @description Estimating if a pan-genome is open or closed based on a Heaps law model.
 #' 
-#' @param pan.matrix A \code{Panmat} object, see \code{\link{panMatrix}} for details.
+#' @param pan.matrix A pan-matrix, see \code{\link{panMatrix}} for details.
 #' @param n.perm The number of random permutations of genome ordering.
 #' 
 #' @details An open pan-genome means there will always be new gene clusters observed as long as new genomes
@@ -83,42 +83,36 @@ chao <- function( pan.matrix ){
 #' @seealso \code{\link{binomixEstimate}}, \code{\link{chao}}, \code{\link{rarefaction}}.
 #' 
 #' @examples 
-#' # Loading a Panmat object in the micropan package 
-#' data(list="Mpneumoniae.blast.panmat",package="micropan")
+#' # Loading a pan-matrix in this package 
+#' data(xmpl.panmat)
 #' 
 #' # Estimating population openness
-#' h.est <- heaps(Mpneumoniae.blast.panmat,n.perm=500)
-#' if(h.est[2]>1){
-#'   cat("Population is closed with alpha =",h.est[2], "\n")
-#' } else {
-#'   cat("Population is open with alpha =",h.est[2], "\n")
-#' }
+#' h.est <- heaps(xmpl.panmat, n.perm = 500)
+#' # If alpha < 1 it indicates an open pan-genome
 #' 
 #' @importFrom stats optim
 #' 
 #' @export
-heaps <- function( pan.matrix, n.perm=100 ){
-  pan.matrix[which( pan.matrix > 0, arr.ind=T )] <- 1
-  ng <- dim( pan.matrix )[1]
-  nmat <- matrix( 0, nrow=(ng-1), ncol=n.perm )
-  cat( "permuting:\n" )
-  for( i in 1:n.perm ){
-    cm <- apply( pan.matrix[sample( ng ),], 2, cumsum )
-    nmat[,i] <- rowSums( (cm==1)[2:ng,] & (cm==0)[1:(ng-1),] )
-    cat( "." )
+heaps <- function(pan.matrix, n.perm = 100){
+  pan.matrix[which(pan.matrix > 0, arr.ind = T)] <- 1
+  ng <- dim(pan.matrix)[1]
+  nmat <- matrix(0, nrow = nrow(pan.matrix) - 1, ncol = n.perm)
+  for(i in 1:n.perm){
+    cm <- apply(pan.matrix[sample(nrow(pan.matrix)),], 2, cumsum)
+    nmat[,i] <- rowSums((cm == 1)[2:ng,] & (cm == 0)[1:(ng-1),])
+    cat(i, "/", n.perm, "\r")
   }
-  cat( "\n" )
-  x <- rep( (2:dim( pan.matrix )[1]), times=n.perm )
-  y <- as.numeric( nmat )
-  p0 <- c( mean( y[which( x == 2 )] ), 1 )
-  fit <- optim( p0, objectFun, gr=NULL, x, y, method="L-BFGS-B", lower=c(0,0), upper=c(10000,2) )
+  x <- rep((2:nrow(pan.matrix)), times = n.perm)
+  y <- as.numeric(nmat)
+  p0 <- c(mean(y[which(x == 2)] ), 1)
+  fit <- optim(p0, objectFun, gr = NULL, x, y, method = "L-BFGS-B", lower = c(0, 0), upper = c(10000, 2))
   p.hat <- fit$par
-  names( p.hat ) <- c( "Intercept", "alpha" )
-  return( p.hat )
+  names(p.hat) <- c("Intercept", "alpha")
+  return(p.hat)
 }
 
-objectFun <- function( p, x, y ){
-  y.hat <- p[1]*x^(-p[2])
-  J <- sqrt( sum( (y - y.hat)^2 ) )/length( x )
-  return( J )
+objectFun <- function(p, x, y){
+  y.hat <- p[1] * x^(-p[2])
+  J <- sqrt(sum((y - y.hat)^2))/length(x)
+  return(J)
 }

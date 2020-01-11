@@ -7,7 +7,7 @@
 geneWeights(pan.matrix, type = c("shell", "cloud"))
 }
 \arguments{
-\item{pan.matrix}{A \code{Panmat} object, see \code{\link{panMatrix}} for details.}
+\item{pan.matrix}{A pan-matrix, see \code{\link{panMatrix}} for details.}
 
 \item{type}{A text indicating the weighting strategy.}
 }
@@ -32,12 +32,7 @@ patterns among these genes may have common recent history. A \samp{"cloud"} weig
 a more erratic or \sQuote{noisy} picture than the \samp{"shell"} weighting.
 }
 \examples{
-# Loading a Panmat object in the micropan package
-data(list="Mpneumoniae.blast.panmat",package="micropan")
-
-# Weighted Manhattan distances based on a BLAST clustering Panmat object
-w <- geneWeights(Mpneumoniae.blast.panmat,type="shell")
-Mdist.blast <- distManhattan(Mpneumoniae.blast.panmat,weights=w)
+# See examples for distManhattan
 
 }
 \references{

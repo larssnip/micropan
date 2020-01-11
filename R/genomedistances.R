@@ -3,7 +3,7 @@
 #' 
 #' @description Computes the genomic fluidity, which is a measure of population diversity.
 #' 
-#' @param pan.matrix A \code{Panmat} object, see \code{\link{panMatrix}} for details.
+#' @param pan.matrix A pan-matrix, see \code{\link{panMatrix}} for details.
 #' @param n.sim An integer specifying the number of random samples to use in the computations.
 #' 
 #' @details  The genomic fluidity between two genomes is defined as the number of unique gene
@@ -20,7 +20,7 @@
 #' 
 #' The input \samp{pan.matrix} is typically constructed by \code{\link{panMatrix}}.
 #' 
-#' @return A list with two elements, the mean fluidity and its sample standard deviation over
+#' @return A vector with two elements, the mean fluidity and its sample standard deviation over
 #' the \samp{n.sim} computed values.
 #' 
 #' @references Kislyuk, A.O., Haegeman, B., Bergman, N.H., Weitz, J.S. (2011). Genomic fluidity:
@@ -31,31 +31,26 @@
 #' @seealso \code{\link{panMatrix}}, \code{\link{distJaccard}}.
 #' 
 #' @examples 
-#' # Loading two Panmat objects in the micropan package
-#' data(list=c("Mpneumoniae.blast.panmat","Mpneumoniae.domain.panmat"),package="micropan")
+#' # Loading a pan-matrix in this package
+#' data(xmpl.panmat)
 #' 
-#' # Fluidity based on a BLAST clustering Panmat object
-#' fluid.blast <- fluidity(Mpneumoniae.blast.panmat)
-#' 
-#' # Fluidity based on domain sequence clustering Panmat object
-#' fluid.domains <- fluidity(Mpneumoniae.domain.panmat)
+#' # Fluidity based on this pan-matrix
+#' fluid <- fluidity(xmpl.panmat)
 #' 
 #' @importFrom stats sd
 #' 
 #' @export fluidity
 #' 
-fluidity <- function( pan.matrix, n.sim=10 ){
-  pan.matrix[which( pan.matrix > 0, arr.ind=T )] <- 1
-  ng <- dim( pan.matrix )[1]
-  flu <- rep( 0, n.sim )
-  for( i in 1:n.sim ){
-    ii <- sample( ng, 2 )
-    g1 <- pan.matrix[ii[1],]
-    g2 <- pan.matrix[ii[2],]
-    flu[i] <- (sum( g1>0 & g2==0 )+sum( g1==0 & g2>0 ))/(sum(g1)+sum(g2))
+fluidity <- function(pan.matrix, n.sim = 10){
+  pan.matrix[which(pan.matrix > 0, arr.ind=T)] <- 1
+  flu <- rep(0, n.sim)
+  for(i in 1:n.sim){
+    ii <- sample(nrow(pan.matrix), 2)
+    flu[i] <- (sum(pan.matrix[ii[1],] > 0 & pan.matrix[ii[2],] == 0)
+               + sum(pan.matrix[ii[1],] == 0 & pan.matrix[ii[2],] > 0)) / (sum(pan.matrix[ii[1],]) + sum(pan.matrix[ii[2],]))
   }
-  flu.list <- list( Mean=mean( flu ), Std=sd( flu ) )
-  return( flu.list )
+  flu.vec <- c(Mean = mean(flu), Std = sd(flu))
+  return(flu.vec)
 }
 
 
@@ -64,9 +59,9 @@ fluidity <- function( pan.matrix, n.sim=10 ){
 #' 
 #' @description Computes the Jaccard distances between all pairs of genomes.
 #' 
-#' @param pan.matrix A \code{Panmat} object, see \code{\link{panMatrix}} for details.
+#' @param pan.matrix A pan-matrix, see \code{\link{panMatrix}} for details.
 #' 
-#' @details The Jaccard index between two sets is defined as the size of the interesection of
+#' @details The Jaccard index between two sets is defined as the size of the intersection of
 #' the sets divided by the size of the union. The Jaccard distance is simply 1 minus the Jaccard index.
 #' 
 #' The Jaccard distance between two genomes describes their degree of overlap with respect to gene
@@ -87,31 +82,28 @@ fluidity <- function( pan.matrix, n.sim=10 ){
 #' @seealso \code{\link{panMatrix}}, \code{\link{fluidity}}, \code{\link{dist}}.
 #' 
 #' @examples
-#' # Loading two Panmat objects in the micropan package
-#' data(list=c("Mpneumoniae.blast.panmat","Mpneumoniae.domain.panmat"),package="micropan")
+#' # Loading a pan-matrix in this package
+#' data(xmpl.panmat)
 #' 
-#' # Jaccard distances based on a BLAST clustering Panmat object
-#' Jdist.blast <- distJaccard(Mpneumoniae.blast.panmat)
+#' # Jaccard distances
+#' Jdist <- distJaccard(xmpl.panmat)
 #' 
-#' # Jaccard distances based on domain sequence clustering Panmat object
-#' Jdist.domains <- distJaccard(Mpneumoniae.domain.panmat) 
+#' # Making a dendrogram based on the distances,
+#' # see example for distManhattan
 #' 
 #' @export distJaccard
 #' 
-distJaccard <- function( pan.matrix ){
-  pan.matrix[which( pan.matrix > 0, arr.ind=T )] <- 1
-  ng <- dim( pan.matrix )[1]
-  dtab <- matrix( 0, nrow=ng, ncol=ng )
-  rownames( dtab ) <- rownames( pan.matrix )
-  colnames( dtab ) <- rownames( pan.matrix )
-  for( i in 1:(ng-1)){
-    g1 <- pan.matrix[i,]
-    for( j in (i+1):ng ){
-      cs <- g1+pan.matrix[j,]
-      dtab[j,i] <- dtab[i,j] <- 1 - sum( cs>1 )/sum( cs>0 )
+distJaccard <- function(pan.matrix){
+  pan.matrix[which(pan.matrix > 0, arr.ind = T)] <- 1
+  D <- matrix(0, nrow = nrow(pan.matrix), ncol = nrow(pan.matrix))
+  rownames(D) <- colnames(D) <- rownames(pan.matrix)
+  for(i in 1:(nrow(pan.matrix) - 1)){
+    for(j in (i+1):nrow(pan.matrix)){
+      cs <- pan.matrix[i,] + pan.matrix[j,]
+      D[j,i] <- D[i,j] <- 1 - sum(cs > 1)/sum(cs > 0)
     }
   }
-  return( as.dist( dtab ) )
+  return(as.dist(D))
 }
 
 
@@ -120,7 +112,7 @@ distJaccard <- function( pan.matrix ){
 #' 
 #' @description Computes the (weighted) Manhattan distances beween all pairs of genomes.
 #' 
-#' @param pan.matrix A \code{Panmat} object, see \code{\link{panMatrix}} for details.
+#' @param pan.matrix A pan-matrix, see \code{\link{panMatrix}} for details.
 #' @param scale An optional scale to control how copy numbers should affect the distances.
 #' @param weights Vector of optional weights of gene clusters.
 #' 
@@ -155,34 +147,37 @@ distJaccard <- function( pan.matrix ){
 #' 
 #' @author Lars Snipen and Kristian Hovde Liland.
 #' 
-#' @seealso \code{\link{panMatrix}}, \code{\link{distJaccard}}, \code{\link{geneWeights}},
-#' \code{\link{panTree}}.
+#' @seealso \code{\link{panMatrix}}, \code{\link{distJaccard}}, \code{\link{geneWeights}}.
 #' 
 #' @examples 
-#' # Loading two Panmat objects in the micropan package
-#' data(list=c("Mpneumoniae.blast.panmat","Mpneumoniae.domain.panmat"),package="micropan")
+#' # Loading a pan-matrix in this package
+#' data(xmpl.panmat)
 #' 
-#' # Manhattan distances based on a BLAST clustering Panmat object
-#' Mdist.blast <- distManhattan(Mpneumoniae.blast.panmat)
+#' # Manhattan distances between genomes
+#' Mdist <- distManhattan(xmpl.panmat)
 #' 
-#' # Manhattan distances based on domain sequence clustering Panmat object
-#' Mdist.domains <- distManhattan(Mpneumoniae.domain.panmat,scale=0.5)
+#' # Making a dendrogram based on shell-weighted distances
+#' weights <- geneWeights(xmpl.panmat, type = "shell")
+#' Mdist <- distManhattan(xmpl.panmat, weights = weights)
+#' ggdendrogram(dendro_data(hclust(Mdist, method = "average")),
+#'   rotate = TRUE, theme_dendro = FALSE) +
+#'   labs(x = "Genomes", y = "Shell-weighted Manhattan distance", title = "Pan-genome dendrogram")
 #' 
 #' @importFrom stats dist
+#' @importFrom ggdendro ggdendrogram dendro_data
+#' @importFrom ggplot2 labs
 #' 
 #' @export distManhattan
 #' 
-distManhattan <- function( pan.matrix, scale=0.0, weights=rep( 1, dim( pan.matrix )[2] ) ){
-  if( (scale>1)|(scale<0) ){
-    warning( "scale should be between 0.0 and 1.0, using scale=0.0" )
+distManhattan <- function(pan.matrix, scale = 0.0, weights = rep(1, ncol(pan.matrix))){
+  if((scale > 1) | (scale < 0)){
+    warning( "scale should be between 0.0 and 1.0, using scale = 0.0" )
     scale <- 0.0
   }
-  idx <- which( pan.matrix > 0, arr.ind=T )
-  pan.matrix[idx] <- 1 + (pan.matrix[idx]-1)*scale
-  
-  pan.matrix <- pan.matrix * matrix( weights, nrow=dim( pan.matrix )[1], ncol=dim( pan.matrix )[2], byrow=T )
-  dtab <- dist( pan.matrix, method="manhattan" )
-  return( dtab )
+  idx <- which(pan.matrix > 0, arr.ind = T)
+  pan.matrix[idx] <- 1 + (pan.matrix[idx] - 1) * scale
+  pan.matrix <- t(t(pan.matrix) * weights)
+  return(dist(pan.matrix, method = "manhattan"))
 }
 
 
@@ -191,7 +186,7 @@ distManhattan <- function( pan.matrix, scale=0.0, weights=rep( 1, dim( pan.matri
 #' 
 #' @description This function computes weights for gene cluster according to their distribution in a pan-genome.
 #' 
-#' @param pan.matrix A \code{Panmat} object, see \code{\link{panMatrix}} for details.
+#' @param pan.matrix A pan-matrix, see \code{\link{panMatrix}} for details.
 #' @param type A text indicating the weighting strategy.
 #' 
 #' @details When computing distances between genomes or a PCA, it is possible to give weights to the
@@ -217,30 +212,25 @@ distManhattan <- function( pan.matrix, scale=0.0, weights=rep( 1, dim( pan.matri
 #' @seealso \code{\link{panMatrix}}, \code{\link{distManhattan}}.
 #' 
 #' @examples 
-#' # Loading a Panmat object in the micropan package
-#' data(list="Mpneumoniae.blast.panmat",package="micropan")
-#' 
-#' # Weighted Manhattan distances based on a BLAST clustering Panmat object
-#' w <- geneWeights(Mpneumoniae.blast.panmat,type="shell")
-#' Mdist.blast <- distManhattan(Mpneumoniae.blast.panmat,weights=w)
+#' # See examples for distManhattan
 #' 
 #' @export geneWeights
 #' 
-geneWeights <- function( pan.matrix, type=c("shell","cloud") ){
+geneWeights <- function(pan.matrix, type = c("shell", "cloud")){
   ng <- dim( pan.matrix )[1]
   nf <- dim( pan.matrix )[2]
-  pan.matrix[which( pan.matrix>0, arr.ind=T )] <- 1
-  cs <- colSums( pan.matrix )
+  pan.matrix[which(pan.matrix > 0, arr.ind = T)] <- 1
+  cs <- colSums(pan.matrix)
   
-  midx <- grep( type[1], c( "shell", "cloud" ) )
-  if( length( midx ) == 0 ){
-    warning( "Unknown weighting:", type, ", using shell weights" )
+  midx <- grep(type[1], c("shell", "cloud"))
+  if(length(midx) == 0){
+    warning("Unknown weighting:", type, ", using shell weights")
     midx <- 1
   }
-  W <- rep( 1, nf )
-  x <- 1:ng
-  ww <- 1/(1+exp( ((x-1)-(max(x)-1)/2)/((max(x)-1)/10) ))
-  if( midx == 1 ) ww <- 1-ww
-  for( i in 1:ng ) W[which( cs == i )] <- ww[i]
-  return( W )
+  W <- rep(1, ncol(pan.matrix))
+  x <- 1:nrow(pan.matrix)
+  ww <- 1 / (1 + exp(((x - 1) - (max(x) - 1)/2) / ((max(x) - 1) / 10)))
+  if(midx == 1) ww <- 1 - ww
+  for(i in x) W[cs == i] <- ww[i]
+  return(W)
 }

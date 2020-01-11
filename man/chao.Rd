@@ -7,7 +7,7 @@
 chao(pan.matrix)
 }
 \arguments{
-\item{pan.matrix}{A \code{Panmat} object, see \code{\link{panMatrix}} for details.}
+\item{pan.matrix}{A pan-matrix, see \code{\link{panMatrix}} for details.}
 }
 \value{
 The function returns an integer, the estimated pan-genome size. This includes both the number
@@ -20,9 +20,9 @@ Computes the Chao lower bound estimated number of gene clusters in a pan-genome.
 The size of a pan-genome is the number of gene clusters in it, both those observed and those
 not yet observed.
 
-The input \samp{pan.matrix} is a \code{Panmat} object, i.e. it is a matrix with one row for each
+The input \samp{pan.matrix} is a a matrix with one row for each
 genome and one column for each observed gene cluster in the pan-genome. See \code{\link{panMatrix}}
-for how to construct such objects.
+for how to construct this.
 
 The number of observed gene clusters is simply the number of columns in \samp{pan.matrix}. The
 number of gene clusters not yet observed is estimated by the Chao lower bound estimator (Chao, 1987).
@@ -30,11 +30,11 @@ This is based solely on the number of clusters observed in 1 and 2 genomes. It i
 conservative estimator, i.e. it is more likely to be too small than too large.
 }
 \examples{
-# Loading a Panmat object in the micropan package
-data(list="Mpneumoniae.blast.panmat",package="micropan")
+# Loading a pan-matrix in this package
+data(xmpl.panmat)
 
 # Estimating the pan-genome size using the Chao estimator
-chao.pansize <- chao(Mpneumoniae.blast.panmat)
+chao.pansize <- chao(xmpl.panmat)
 
 }
 \references{

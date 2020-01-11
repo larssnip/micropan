@@ -4,7 +4,7 @@
 \alias{bClust}
 \title{Clustering sequences based on pairwise distances}
 \usage{
-bClust(dist.tbl, linkage = "single", threshold = 1)
+bClust(dist.tbl, linkage = "single", threshold = 1, verbose = FALSE)
 }
 \arguments{
 \item{dist.tbl}{A \code{tibble} with pairwise distances.}
@@ -14,11 +14,14 @@ bClust(dist.tbl, linkage = "single", threshold = 1)
 
 \item{threshold}{Specifies the maximum size of a cluster. Must be a distance, i.e. a number between
 0.0 and 1.0.}
+
+\item{verbose}{Logical, turns on/off text output during computations.}
 }
 \value{
 The function returns a vector of integers, indicating the cluster membership of every unique
 sequence from the \samp{Query} or \samp{Hit} columns of the input \samp{dist.tbl}. The name
-of each element indicates the sequence. Sequences having the same number are in the same cluster.
+of each element indicates the sequence. The numerical values have no meaning as such, they are simply
+categorical indicators of cluster membership.
 }
 \description{
 Sequences are clustered by hierarchical clustering based on a set of pariwise distances.
@@ -58,14 +61,14 @@ alternative to compute. Using the default setting of \samp{single} linkage and m
 (1.0) will produce the largest and fewest clusters possible.
 }
 \examples{
-# Loading distance data in the micropan package
-data(Mpneumoniae.blast.distances, package = "micropan")
+# Loading example BLAST distances
+data(xmpl.bdist)
 
 # Clustering with default settings
-clustering.blast.single <- bClust(Mpneumoniae.blast.distances)
+clst.single <- bClust(xmpl.bdist)
 
 # Clustering with complete linkage and a liberal threshold
-clustering.blast.complete <- bClust(Mpneumoniae.blast.distances, linkage = "complete", threshold = 0.75)
+clst.complete <- bClust(xmpl.bdist, linkage = "complete", threshold = 0.75)
 
 }
 \seealso{
