@@ -156,16 +156,17 @@ distJaccard <- function(pan.matrix){
 #' # Manhattan distances between genomes
 #' Mdist <- distManhattan(xmpl.panmat)
 #' 
+#' \dontrun{
 #' # Making a dendrogram based on shell-weighted distances
+#' library(ggdendro)
 #' weights <- geneWeights(xmpl.panmat, type = "shell")
 #' Mdist <- distManhattan(xmpl.panmat, weights = weights)
 #' ggdendrogram(dendro_data(hclust(Mdist, method = "average")),
 #'   rotate = TRUE, theme_dendro = FALSE) +
 #'   labs(x = "Genomes", y = "Shell-weighted Manhattan distance", title = "Pan-genome dendrogram")
+#' }
 #' 
 #' @importFrom stats dist
-#' @importFrom ggdendro ggdendrogram dendro_data
-#' @importFrom ggplot2 labs
 #' 
 #' @export distManhattan
 #' 

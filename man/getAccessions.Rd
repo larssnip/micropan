@@ -31,6 +31,7 @@ The download API at NCBI will not tolerate too many accessions per query, and fo
 to split the accessions for many contigs into several texts using \code{chunk.size}.
 }
 \examples{
+\dontrun{
 # The master record accession for the WGS genome Mycoplasma genitalium, strain G37
 acc <- getAccessions("AAGX00000000")
 # Then we use this to download all contigs and save them
@@ -39,6 +40,7 @@ txt <- entrezDownload(acc, out.file = genome.file)
 
 # ...cleaning...
 ok <- file.remove(genome.file)
+}
 
 }
 \seealso{

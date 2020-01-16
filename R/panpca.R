@@ -60,7 +60,9 @@
 #' # Computing panPca
 #' ppca <- panPca(xmpl.panmat)
 #' 
+#' \dontrun{
 #' # Plotting explained variance
+#' library(ggplot2)
 #' ggplot(ppca$Evar.tbl) +
 #'   geom_col(aes(x = Component, y = Explained.variance))
 #' # Plotting scores
@@ -69,6 +71,7 @@
 #' # Plotting loadings
 #' ggplot(ppca$Loadings.tbl) +
 #'   geom_text(aes(x = PC1, y = PC2, label = Cluster))
+#' }
 #' 
 #' @importFrom tibble as_tibble tibble
 #' 

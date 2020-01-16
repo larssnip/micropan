@@ -40,6 +40,7 @@ Note that all downloaded sequences end up in this file. If you want to download 
 you call \code{\link{entrezDownload}} multiple times and store in multiple files.
 }
 \examples{
+\dontrun{
 # Accession numbers for the chromosome and plasmid of Buchnera aphidicola, strain APS
 acc <- "BA000003.2,AP001071.1"
 genome.file <- tempfile(pattern = "Buchnera_aphidicola", fileext = ".fna")
@@ -47,6 +48,7 @@ txt <- entrezDownload(acc, out.file = genome.file)
 
 # ...cleaning...
 ok <- file.remove(genome.file)
+}
 
 }
 \seealso{

@@ -43,16 +43,16 @@ role, not only the number of mutations.
 }
 \examples{
 # Using BLAST result files in this package...
-prefix <- c("GID1_vs_GID1.txt",
-            "GID1_vs_GID2.txt",
-            "GID1_vs_GID3.txt",
-            "GID2_vs_GID2.txt",
-            "GID2_vs_GID3.txt",
-            "GID3_vs_GID3.txt")
-bf <- file.path(path.package("micropan"), "extdata", str_c(prefix, ".xz"))
+prefix <- c("GID1_vs_GID1_",
+            "GID2_vs_GID1_",
+            "GID3_vs_GID1_",
+            "GID2_vs_GID2_",
+            "GID3_vs_GID2_",
+            "GID3_vs_GID3_")
+bf <- file.path(path.package("micropan"), "extdata", str_c(prefix, ".txt.xz"))
 
 # We need to uncompress them first...
-blast.files <- tempfile(pattern = prefix, fileext = ".xz")
+blast.files <- tempfile(pattern = prefix, fileext = ".txt.xz")
 ok <- file.copy(from = bf, to = blast.files)
 blast.files <- unlist(lapply(blast.files, xzuncompress))
 

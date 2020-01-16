@@ -38,11 +38,15 @@ data(xmpl.panmat)
 # Rarefaction
 rar.tbl <- rarefaction(xmpl.panmat, n.perm = 1000)
 
+\dontrun{
 # Plotting
+library(ggplot2)
+library(tidyr)
 rar.tbl \%>\% 
   gather(key = "Permutation", value = "Clusters", -Genome) \%>\% 
   ggplot(aes(x = Genome, y = Clusters, group = Permutation)) +
     geom_line()
+}
 
 }
 \seealso{

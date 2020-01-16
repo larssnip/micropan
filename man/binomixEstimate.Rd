@@ -88,7 +88,9 @@ data(xmpl.panmat)
 binmix.lst <- binomixEstimate(xmpl.panmat, K.range = 3:8)
 print(binmix.lst$BIC.tbl) # minimum BIC at 3 components
 
+\dontrun{
 # The pan-genome gene distribution as a pie-chart
+library(ggplot2)
 ncomp <- 3
 binmix.lst$Mix.tbl \%>\% 
   filter(Components == ncomp) \%>\% 
@@ -107,6 +109,7 @@ binmix.lst$Mix.tbl \%>\%
   coord_polar(theta = "y") +
   labs(x = "", y = "", title = "Average genome gene distribution") +
   scale_fill_gradientn(colors = c("pink", "orange", "green", "cyan", "blue"))
+}
 
 }
 \references{

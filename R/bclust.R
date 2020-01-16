@@ -6,8 +6,8 @@
 #' have distance 1.0.
 #' 
 #' @param dist.tbl A \code{tibble} with pairwise distances. 
-#' @param linkage A text indicating what type of clustering to perform, either \samp{single} (default),
-#' \samp{average} or \samp{complete}.
+#' @param linkage A text indicating what type of clustering to perform, either \samp{complete} (default),
+#' \samp{average} or \samp{single}.
 #' @param threshold Specifies the maximum size of a cluster. Must be a distance, i.e. a number between
 #' 0.0 and 1.0.
 #' @param verbose Logical, turns on/off text output during computations.
@@ -57,10 +57,9 @@
 #' data(xmpl.bdist)
 #' 
 #' # Clustering with default settings
-#' clst.single <- bClust(xmpl.bdist)
-#' 
-#' # Clustering with complete linkage and a liberal threshold
-#' clst.complete <- bClust(xmpl.bdist, linkage = "complete", threshold = 0.75)
+#' clst <- bClust(xmpl.bdist)
+#' # Other settings, and verbose
+#' clst <- bClust(xmpl.bdist, linkage = "average", threshold = 0.5, verbose = T)
 #' 
 #' @importFrom igraph graph.edgelist clusters degree
 #' @importFrom stats hclust as.dist cutree
@@ -68,7 +67,7 @@
 #' 
 #' @export bClust
 #' 
-bClust <- function(dist.tbl, linkage = "single", threshold = 1.0, verbose = FALSE){
+bClust <- function(dist.tbl, linkage = "complete", threshold = 0.75, verbose = FALSE){
   if(verbose) cat("bClust:\n")
   linknum <- grep(linkage, c("single", "average", "complete"))
   dist.tbl %>% 
@@ -112,10 +111,11 @@ bClust <- function(dist.tbl, linkage = "single", threshold = 1.0, verbose = FALS
         clustering2[idx] <- clustering2[idx] + cutree(clst, h = threshold)
         if(verbose) cat(i, "/", length(idx.c), "\r")
       }
+      clustering <- clustering2
     }
   }
-  fclustering <- as.integer(factor(clustering2))  # to get values 1,2,3,...
-  names(fclustering) <- names(clustering2)
+  fclustering <- as.integer(factor(clustering))  # to get values 1,2,3,...
+  names(fclustering) <- names(clustering)
   if(verbose) cat("...ended with", length(unique(fclustering)),
                   "clusters, largest cluster has",
                   max(table(fclustering)), "members\n")
@@ -160,11 +160,13 @@ bClust <- function(dist.tbl, linkage = "single", threshold = 1.0, verbose = FALS
 #' 
 #' @examples
 #' \dontrun{
-#' # Loading distance data in the micropan package
-#' data(list = c("Buchnera.bdist","Buchnera.bclst"))
+#' # Loading distance data and their clustering results
+#' data(list = c("xmpl.bdist","xmpl.bclst"))
 #' 
 #' # Finding orthologs
-#' is.ortholog <- isOrtholog(Buchnera.bclst, Buchnera.bdist)
+#' is.ortholog <- isOrtholog(xmpl.bclst, xmpl.bdist)
+#' # The orthologs are
+#' which(is.ortholog)
 #' }
 #' 
 #' @export isOrtholog

@@ -66,6 +66,7 @@ prepped.file <- panPrep(prot.file, genome_id = "GID123", out.file = tempfile(fil
 
 # Reading the prepped file
 prepped <- readFasta(prepped.file)
+head(prepped)
 
 # ...and cleaning...
 ok <- file.remove(prot.file, prepped.file)

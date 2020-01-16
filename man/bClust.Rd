@@ -4,13 +4,13 @@
 \alias{bClust}
 \title{Clustering sequences based on pairwise distances}
 \usage{
-bClust(dist.tbl, linkage = "single", threshold = 1, verbose = FALSE)
+bClust(dist.tbl, linkage = "complete", threshold = 0.75, verbose = FALSE)
 }
 \arguments{
 \item{dist.tbl}{A \code{tibble} with pairwise distances.}
 
-\item{linkage}{A text indicating what type of clustering to perform, either \samp{single} (default),
-\samp{average} or \samp{complete}.}
+\item{linkage}{A text indicating what type of clustering to perform, either \samp{complete} (default),
+\samp{average} or \samp{single}.}
 
 \item{threshold}{Specifies the maximum size of a cluster. Must be a distance, i.e. a number between
 0.0 and 1.0.}
@@ -65,10 +65,9 @@ alternative to compute. Using the default setting of \samp{single} linkage and m
 data(xmpl.bdist)
 
 # Clustering with default settings
-clst.single <- bClust(xmpl.bdist)
-
-# Clustering with complete linkage and a liberal threshold
-clst.complete <- bClust(xmpl.bdist, linkage = "complete", threshold = 0.75)
+clst <- bClust(xmpl.bdist)
+# Other settings, and verbose
+clst <- bClust(xmpl.bdist, linkage = "average", threshold = 0.5, verbose = T)
 
 }
 \seealso{

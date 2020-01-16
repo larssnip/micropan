@@ -41,11 +41,13 @@ tight and homogenous (and many) clusters, almost all sequences will be orthologs
 }
 \examples{
 \dontrun{
-# Loading distance data in the micropan package
-data(list = c("Buchnera.bdist","Buchnera.bclst"))
+# Loading distance data and their clustering results
+data(list = c("xmpl.bdist","xmpl.bclst"))
 
 # Finding orthologs
-is.ortholog <- isOrtholog(Buchnera.bclst, Buchnera.bdist)
+is.ortholog <- isOrtholog(xmpl.bclst, xmpl.bdist)
+# The orthologs are
+which(is.ortholog)
 }
 
 }

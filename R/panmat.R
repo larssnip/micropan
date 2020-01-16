@@ -39,11 +39,14 @@
 #' # Pan-matrix based on the clustering
 #' panmat <- panMatrix(xmpl.bclst)
 #' 
+#' \dontrun{
 #' # Plotting cluster distribution
+#' library(ggplot2)
 #' tibble(Clusters = as.integer(table(factor(colSums(panmat > 0), levels = 1:nrow(panmat)))),
 #'        Genomes = 1:nrow(panmat)) %>% 
 #' ggplot(aes(x = Genomes, y = Clusters)) +
 #' geom_col()
+#' }
 #' 
 #' @importFrom stringr str_extract str_c
 #' 

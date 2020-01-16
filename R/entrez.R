@@ -33,6 +33,7 @@
 #' @seealso \code{\link{getAccessions}}, \code{\link[microseq]{readFasta}}.
 #' 
 #' @examples 
+#' \dontrun{
 #' # Accession numbers for the chromosome and plasmid of Buchnera aphidicola, strain APS
 #' acc <- "BA000003.2,AP001071.1"
 #' genome.file <- tempfile(pattern = "Buchnera_aphidicola", fileext = ".fna")
@@ -40,6 +41,7 @@
 #' 
 #' # ...cleaning...
 #' ok <- file.remove(genome.file)
+#' }
 #' 
 #' @export entrezDownload
 #' 
@@ -92,7 +94,8 @@ entrezDownload <- function(accession, out.file, verbose = TRUE){
 #' 
 #' @seealso \code{\link{entrezDownload}}.
 #' 
-#' @examples 
+#' @examples
+#' \dontrun{
 #' # The master record accession for the WGS genome Mycoplasma genitalium, strain G37
 #' acc <- getAccessions("AAGX00000000")
 #' # Then we use this to download all contigs and save them
@@ -101,6 +104,7 @@ entrezDownload <- function(accession, out.file, verbose = TRUE){
 #' 
 #' # ...cleaning...
 #' ok <- file.remove(genome.file)
+#' }
 #' 
 #' @importFrom stringr str_c str_detect str_extract str_sub str_remove str_split
 #' 

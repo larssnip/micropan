@@ -41,6 +41,7 @@ data(xmpl.panmat)
 
 # Estimating population openness
 h.est <- heaps(xmpl.panmat, n.perm = 500)
+print(h.est)
 # If alpha < 1 it indicates an open pan-genome
 
 }
