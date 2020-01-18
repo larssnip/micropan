@@ -1,0 +1,49 @@
+\documentclass{article}
+\usepackage{url,Sweave}
+%\VignetteIndexEntry{The micropan package vignette}
+
+\title{The \texttt{micropan} package vignette}
+\author{Lars Snipen and Kristian Hovde Liland}
+\date{}
+
+\begin{document}
+%\SweaveOpts{concordance=TRUE}
+
+\maketitle
+
+
+\section{Using \texttt{dplyr} and \texttt{stringr}}
+A major change in this version of this package is the use of generic data structures in R instead of creating new data types. This makes it possible to use the power of standard data manipulation tools and visualization that R-users are familiar with.
+
+Compared to previous versions you will find that some functions have been moved to the \texttt{microseq} package, upon which this package depends.
+
+You will also find fewer plotting functions and no casestudy-document. However, if you locate the GitHub site for this package, you find a tutorial with code for how to make similar plots using \texttt{ggplot}. This is an example of using generic R tools instead of making functions for each special case.
+
+
+
+\section{External software}
+Some functions in this package calls upons external software that must be available on the system. Some of these are 'installed' by simply downloading a binary executable that you put somewhere proper on your computer. To make such programs visible to R, you typically need to update your \texttt{PATH} environment variable, to specify where these executables are located. Try it out, and use google for help!
+
+
+\subsection{Software \texttt{blast+}}
+The function \emph{blastpAllAll} uses the free software \texttt{blast+} (ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/). Source code and installers makes it straightforward to install. In the R console the command
+\begin{Schunk}
+\begin{Sinput}
+> system("blastp -h")
+\end{Sinput}
+\end{Schunk}
+should produce some sensible output.
+
+
+\subsection{Software \texttt{hmmer}}
+The functions \emph{hmmerScan()} uses the free software \texttt{hmmer} (http://hmmer.org/). This software is developed for UNIX systems (e.g. Mac or Linux), and Windows users may find it a little difficult to install and run from R. In the R console the command
+\begin{Schunk}
+\begin{Sinput}
+> system("hmmscan -h")
+\end{Sinput}
+\end{Schunk}
+should produce some sensible output.
+
+
+
+\end{document}
