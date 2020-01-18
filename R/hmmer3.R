@@ -89,6 +89,7 @@ hmmerScan <- function(in.files, dbase, out.folder, threads = 0, verbose = TRUE){
     basic <- paste("hmmscan -o", log.fil,"--cut_ga --noali --cpu", threads)
     rbase <- str_c("_vs_", basename(dbase), ".txt")
     gids <- str_extract(in.files, "GID[0-9]+")
+    in.files <- normalizePath(in.files)
     for(i in 1:length(in.files)){
       rname <- str_c(gids[i], rbase)
       res.files <- list.files(out.folder)
@@ -142,6 +143,7 @@ hmmerScan <- function(in.files, dbase, out.folder, threads = 0, verbose = TRUE){
 #' @export readHmmer
 #' 
 readHmmer <- function(hmmer.file, e.value = 1, use.acc = TRUE){
+  hmmer.file <- normalizePath(hmmer.file)
   readLines(hmmer.file) %>% 
     subset(!str_detect(., "^\\#")) %>% 
     str_replace_all("[ ]+", " ") -> lines

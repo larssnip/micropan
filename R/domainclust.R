@@ -40,7 +40,7 @@
 #' @examples 
 #' # HMMER3 result files in this package
 #' hf <- file.path(path.package("micropan"), "extdata", 
-#'                 str_c("GID", 1:3, "_vs_Pfam-A.hmm.txt.xz"))
+#'                 str_c("GID", 1:3, "_vs_microfam.hmm.txt.xz"))
 #' 
 #' # We need to uncompress them first...
 #' hmm.files <- tempfile(fileext = rep(".xz", length(hf)))
@@ -56,7 +56,7 @@
 #' }
 #' 
 #' # The clustering
-#' clustering.domains <- dClust(hmmer.tbl)
+#' clst <- dClust(hmmer.tbl)
 #' 
 #' # ...and cleaning...
 #' ok <- file.remove(hmm.files)
