@@ -42,6 +42,9 @@
 #'     geom_line()
 #' }
 #' 
+#' @importFrom dplyr %>% bind_cols
+#' @importFrom tibble tibble as_tibble
+#' 
 #' @export rarefaction
 #' 
 rarefaction <- function(pan.matrix, n.perm = 1){
@@ -63,50 +66,3 @@ rarefaction <- function(pan.matrix, n.perm = 1){
   return(rtbl)
 }
 
-
-
-#' #' @rdname generic.Rarefac
-#' #' @name plot.Rarefac
-#' #' @title Plot and summary of \code{Rarefac} objects
-#' #' 
-#' #' @description Generic functions for \code{Rarefac} object.
-#' #' 
-#' #' @param x A \code{Rarefac} object, see below.
-#' #' @param object A \code{Rarefac} object, see below.
-#' #' @param type Type of plot, default is \samp{"b"}, giving markers with lines between.
-#' #' @param pch Marker type, default is \samp{16}, a filled circle.
-#' #' @param xlab Text for horizontal axis.
-#' #' @param ylab Text for vertical axis.
-#' #' @param \dots Optional graphical arguments.
-#' #' 
-#' #' @details A \code{Rarefac} object is a small (S3) extension to a matrix. The first column contains
-#' #' the cumulative number of unique gene clusters found when considering 1,2,...,G genomes in a pan-matrix.
-#' #' Thus, the \code{Rarefac} object is a matrix with G rows. Any additional columns will hold similar
-#' #' numbers, but for random shufflings of the genome's ordering. A \code{Rarefac} object is typically
-#' #' created by the function \code{\link{rarefaction}}.
-#' #' 
-#' #' The \code{\link{plot.Rarefac}} function will display the content of the \code{Rarefac} object as a plot
-#' #' of the mean value in rows 1,2,...,G, where G is the total number of genomes in the study.
-#' #' 
-#' #' The \code{\link{summary.Rarefac}} function will display a text giving the same information as
-#' #' \code{\link{plot.Rarefac}}.
-#' #' 
-#' #' @author Lars Snipen and Kristian Hovde Liland.
-#' #' 
-#' #' @seealso \code{\link{rarefaction}}, \code{\link{heaps}}.
-#' #' 
-#' #' @examples # See examples in the Help-file for rarefaction.
-#' #' 
-#' #' @export
-#' plot.Rarefac <- function( x, type="b", pch=16, xlab="Genomes", ylab="Number of unique gene clusters", ... ){
-#'   Rarefac <- x
-#'   plot( 1:dim( Rarefac )[1], rowMeans( Rarefac ), type=type, pch=pch, xlab=xlab, ylab=ylab, ... )
-#' }
-#' #' @rdname generic.Rarefac
-#' #' @export
-#' summary.Rarefac <- function( object, ... ){
-#'   cat( "For", 1, "genome we observe on average", round( mean( object[1,] ) ), "unique gene clusters\n" )
-#'   for( i in 2:nrow( object ) ){
-#'     cat( "For", i, "genomes we observe on average", round( mean( object[i,] ) ), "unique gene clusters\n" )
-#'   }
-#' }

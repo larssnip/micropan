@@ -6,9 +6,6 @@
 #' Some of the functions make use of external software that needs to be installed on the system, see the
 #' package vignette for more details on this.
 #' 
-#' It is highly reccomended that you look at the supplied casestudy.pdf document for a guide on how to use
-#' this package for pan-genome analyses.
-#' 
 #' 
 #' @author Lars Snipen and Kristian Hovde Liland.
 #' 

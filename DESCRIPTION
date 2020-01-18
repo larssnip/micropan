@@ -9,15 +9,13 @@ Description: A collection of functions for computations and visualizations of mi
 License: GPL-2
 Depends:
     R (>= 3.5.0),
-    igraph,
     microseq,
-    tibble,
     dplyr,
-    stringr,
-    readr
+    stringr
 Imports:
-    Rcpp (>= 0.12.0)
-LinkingTo: Rcpp (>= 0.12.0), BH
+    igraph,
+    tibble,
+    rlang
 LazyData: FALSE
 ZipData: TRUE
 RoxygenNote: 7.0.2

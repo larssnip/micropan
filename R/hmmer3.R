@@ -139,15 +139,16 @@ hmmerScan <- function(in.files, dbase, out.folder, threads = 0, verbose = TRUE){
 #' @importFrom stringr str_detect str_split str_c str_replace_all
 #' @importFrom tibble tibble
 #' @importFrom dplyr %>% 
+#' @importFrom rlang .data
 #' 
 #' @export readHmmer
 #' 
 readHmmer <- function(hmmer.file, e.value = 1, use.acc = TRUE){
   hmmer.file <- normalizePath(hmmer.file)
-  readLines(hmmer.file) %>% 
-    subset(!str_detect(., "^\\#")) %>% 
-    str_replace_all("[ ]+", " ") -> lines
-  lst <- str_split(lines, pattern = " ")
+  lines <- readLines(hmmer.file)
+  subset(lines, !str_detect(lines, "^\\#")) %>%
+    str_replace_all("[ ]+", " ") %>% 
+    str_split(pattern = " ") -> lst
   if(use.acc){
     hit <- sapply(lst, function(x){x[2]})
   } else {
@@ -160,7 +161,7 @@ readHmmer <- function(hmmer.file, e.value = 1, use.acc = TRUE){
          Start  = as.numeric(sapply(lst, function(x){x[18]})),
          Stop   = as.numeric(sapply(lst, function(x){x[19]})),
          Description = sapply(lst, function(x){str_c(x[23:length(x)], collapse = " ")})) %>% 
-    filter(Evalue <= e.value) -> hmmer.tbl
+    filter(.data$Evalue <= e.value) -> hmmer.tbl
   return(hmmer.tbl)
 }
 

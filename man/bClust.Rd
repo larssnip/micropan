@@ -67,7 +67,7 @@ data(xmpl.bdist)
 # Clustering with default settings
 clst <- bClust(xmpl.bdist)
 # Other settings, and verbose
-clst <- bClust(xmpl.bdist, linkage = "average", threshold = 0.5, verbose = T)
+clst <- bClust(xmpl.bdist, linkage = "average", threshold = 0.5, verbose = TRUE)
 
 }
 \seealso{

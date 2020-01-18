@@ -58,12 +58,16 @@
 #' # See also example for blastpAllAll
 #' 
 #' @importFrom tibble tibble
-#' @importFrom stringr str_extract
-#' @importFrom readr read_delim
+#' @importFrom stringr str_extract_all
+#' @importFrom dplyr %>% rename filter arrange mutate distinct select bind_rows desc
+#' @importFrom utils read.table
+#' @importFrom rlang .data
 #' 
-#' @export
+#' @export bDist
+#' 
 bDist <- function(blast.files, e.value = 1, verbose = TRUE){
   if(verbose) cat("bDist:\n")
+  blast.files <- normalizePath(blast.files)
   gids <- str_extract_all(blast.files, "GID[0-9]+", simplify = T)
   self.idx <- which(gids[,1] == gids[,2])
   if(verbose) cat("...reading", length(self.idx), "self alignments...\n")
@@ -71,20 +75,21 @@ bDist <- function(blast.files, e.value = 1, verbose = TRUE){
   slf.tbl <- NULL
   max.tbl <- NULL
   for(i in 1:length(self.idx)){
-    suppressMessages(read_delim(blast.files[self.idx[i]], delim = "\t", trim_ws = T,
-                               col_names = c("Query", "Hit", "Evalue", "Bitscore"))) %>% 
-      filter(Evalue <= e.value) %>% 
-      arrange(desc(Bitscore)) %>% 
-      mutate(Pair = sortPaste(Query, Hit)) %>% 
-      distinct(Pair, .keep_all = T) %>% 
-      select(-Evalue, -Pair) -> tbl
+      read.table(blast.files[self.idx[i]], header = FALSE, sep = "\t", strip.white = TRUE,
+                 stringsAsFactors = FALSE) %>% 
+      rename(Query = .data$V1, Hit = .data$V2, Evalue = .data$V3, Bitscore = .data$V4) %>% 
+      filter(.data$Evalue <= e.value) %>% 
+      arrange(desc(.data$Bitscore)) %>% 
+      mutate(Pair = sortPaste(.data$Query, .data$Hit)) %>% 
+      distinct(.data$Pair, .keep_all = TRUE) %>% 
+      select(-.data$Evalue, -.data$Pair) -> tbl
     tbl %>%
-      filter(Query == Hit) %>% 
+      filter(.data$Query == .data$Hit) %>% 
       bind_rows(max.tbl) -> max.tbl
     idx.q <- match(tbl$Query, max.tbl$Query)
     idx.h <- match(tbl$Hit,   max.tbl$Query)
     tbl %>%
-      mutate(Distance = 1 - (2 * Bitscore) / (max.tbl$Bitscore[idx.q] + max.tbl$Bitscore[idx.h])) %>% 
+      mutate(Distance = 1 - (2 * .data$Bitscore) / (max.tbl$Bitscore[idx.q] + max.tbl$Bitscore[idx.h])) %>% 
       bind_rows(slf.tbl) -> slf.tbl
   }
   if(verbose) cat("...found BLAST results for", nrow(slf.tbl), "unique sequences...\n")
@@ -93,24 +98,26 @@ bDist <- function(blast.files, e.value = 1, verbose = TRUE){
   crss.tbl <- NULL
   for(i in 1:length(blast.files)){
     if(!(i %in% self.idx)){
-      suppressMessages(read_delim(blast.files[i], delim = "\t", trim_ws = T,
-                                  col_names = c("Query", "Hit", "Evalue", "Bitscore"))) %>% 
-        filter(Evalue <= e.value) %>% 
-        arrange(desc(Bitscore)) %>% 
-        mutate(Pair = sortPaste(Query, Hit)) %>% 
-        distinct(Pair, .keep_all = T) %>% 
-        select(-Evalue, -Pair) -> tbl
+      read.table(blast.files[i], header = FALSE, sep = "\t", strip.white = TRUE,
+                 stringsAsFactors = FALSE) %>% 
+        rename(Query = .data$V1, Hit = .data$V2, Evalue = .data$V3, Bitscore = .data$V4) %>% 
+        filter(.data$Evalue <= e.value) %>% 
+        arrange(desc(.data$Bitscore)) %>% 
+        mutate(Pair = sortPaste(.data$Query, .data$Hit)) %>% 
+        distinct(.data$Pair, .keep_all = T) %>% 
+        select(-.data$Evalue, -.data$Pair) -> tbl
       idx.q <- match(tbl$Query, max.tbl$Query)
       idx.h <- match(tbl$Hit,   max.tbl$Query)
       if(sum(is.na(idx.q)) > 0) stop("Self-alignment lacking for Query", which(is.na(idx.q)), "in blast.file", blast.files[i], "\n")
       if(sum(is.na(idx.h)) > 0) stop("Self-alignment lacking for Hit", which(is.na(idx.h)), "in blast.file", blast.files[i], "\n")
       tbl %>% 
-        mutate(Distance = 1 - (2 * Bitscore)/(max.tbl$Bitscore[idx.q] + max.tbl$Bitscore[idx.h])) %>% 
+        mutate(Distance = 1 - (2 * .data$Bitscore)/(max.tbl$Bitscore[idx.q] + max.tbl$Bitscore[idx.h])) %>% 
         bind_rows(crss.tbl) -> crss.tbl
     }
   }
   bind_rows(slf.tbl, crss.tbl) %>% 
-    arrange(Query, Hit) -> dist.tbl
+    arrange(.data$Query, .data$Hit) %>% 
+    as_tibble() -> dist.tbl
   return(dist.tbl)
 }
 

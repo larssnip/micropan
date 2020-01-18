@@ -7,7 +7,7 @@
 hmmerCleanOverlap(hmmer.tbl)
 }
 \arguments{
-\item{hmmer.table}{A \code{data.frame} with \code{\link{hmmerScan}} results, see \code{\link{readHmmer}}.}
+\item{hmmer.tbl}{A table (\code{tibble}) with \code{\link{hmmerScan}} results, see \code{\link{readHmmer}}.}
 }
 \value{
 A \code{tibble} which is a subset of the input, where some rows may have been deleted to

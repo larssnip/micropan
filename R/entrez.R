@@ -43,16 +43,18 @@
 #' ok <- file.remove(genome.file)
 #' }
 #' 
+#' @importFrom stringr str_c
+#' 
 #' @export entrezDownload
 #' 
 entrezDownload <- function(accession, out.file, verbose = TRUE){
   if(verbose) cat("Downloading genome...")
   connect <- file(out.file, open = "w")
   for(j in 1:length(accession)){
-    adr <- paste0("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nucleotide",
-                  "&id=", accession[j],
-                  "&retmode=text",
-                  "&rettype=fasta")
+    adr <- str_c("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nucleotide",
+                 "&id=", accession[j],
+                 "&retmode=text",
+                 "&rettype=fasta")
     entrez <- url(adr, open = "rt")
     if(isOpen(entrez)){
       lines <- readLines(entrez)

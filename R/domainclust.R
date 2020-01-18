@@ -61,14 +61,17 @@
 #' # ...and cleaning...
 #' ok <- file.remove(hmm.files)
 #' 
+#' @importFrom dplyr arrange group_by summarize mutate
+#' @importFrom rlang .data
+#' 
 #' @export dClust
 #' 
 dClust <- function(hmmer.tbl){
   hmmer.tbl %>% 
-    arrange(Start) %>% 
-    group_by(Query) %>% 
-    summarize(Dom.seq = str_c(Hit, collapse = ",")) %>% 
-    mutate(Cluster = as.integer(factor(Dom.seq, levels = unique(Dom.seq)))) -> tbl
+    arrange(.data$Start) %>% 
+    group_by(.data$Query) %>% 
+    summarize(Dom.seq = str_c(.data$Hit, collapse = ",")) %>% 
+    mutate(Cluster = as.integer(factor(.data$Dom.seq, levels = unique(.data$Dom.seq)))) -> tbl
 
   dsc <- tbl$Cluster
   names(dsc) <- tbl$Query
@@ -82,7 +85,7 @@ dClust <- function(hmmer.tbl){
 #' 
 #' @description Removing hits to avoid overlapping HMMs on the same protein sequence.
 #' 
-#' @param hmmer.table A \code{data.frame} with \code{\link{hmmerScan}} results, see \code{\link{readHmmer}}.
+#' @param hmmer.tbl A table (\code{tibble}) with \code{\link{hmmerScan}} results, see \code{\link{readHmmer}}.
 #' 
 #' @details  When scanning sequences against a profile HMM database using \code{\link{hmmerScan}}, we
 #' often find that several patterns (HMMs) match in the same region of the query sequence, i.e. we have
@@ -100,7 +103,8 @@ dClust <- function(hmmer.tbl){
 #' 
 #' @examples # See the example in the Help-file for dClust.
 #' 
-#' @importFrom dplyr filter select %>% 
+#' @importFrom dplyr filter select %>% slice
+#' @importFrom rlang .data
 #' 
 #' @export hmmerCleanOverlap
 #' 
@@ -114,8 +118,8 @@ hmmerCleanOverlap <- function(hmmer.tbl){
       hmmer.tbl$Keep[idx] <- keeper(hmmer.tbl[idx,])
     }
     hmmer.tbl %>% 
-      filter(Keep) %>% 
-      select(-Keep) -> hmmer.tbl
+      filter(.data$Keep) %>% 
+      select(-.data$Keep) -> hmmer.tbl
   }
   return(hmmer.tbl)
 } 
@@ -142,7 +146,7 @@ overlapper <- function(hmmer.tbl){
       ovr <- ((ht$Start[i] <= ht$Stop[-i]) & (ht$Start[i] >= ht$Start[-i])) |
         ((ht$Stop[i] <= ht$Stop[-i]) & (ht$Stop[i] >= ht$Start[-i])) |
         ((ht$Start[i] <= ht$Start[-i]) & (ht$Stop[i] >= ht$Stop[-i]))
-      olaps[idx[i]] <- ovr && ovr
+      olaps[idx[i]] <- (length(which(ovr)) > 0)
     }
   }
   return(olaps)

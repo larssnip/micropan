@@ -64,8 +64,9 @@
 #' ok <- file.remove(prot.file, prepped.file)
 #' 
 #' @importFrom microseq readFasta writeFasta
-#' @importFrom dplyr mutate filter %>% 
-#' @importFrom stringr str_remove str_length str_c str_extract str_replace
+#' @importFrom dplyr mutate filter %>% n
+#' @importFrom stringr str_remove_all str_length str_c str_extract str_replace
+#' @importFrom rlang .data
 #' 
 #' @export panPrep
 #' 
@@ -76,15 +77,15 @@ panPrep <- function(in.file, genome_id, out.file, protein = TRUE, min.length = 1
     alien <- "[^ACGT]"
   }
   readFasta(in.file) %>% 
-    mutate(Sequence = toupper(Sequence)) %>% 
-    mutate(Sequence = str_remove_all(Sequence, "\\*")) %>% 
-    mutate(Length = str_length(Sequence)) %>% 
-    filter(Length >= min.length) %>% 
-    mutate(Sequence = str_replace_all(Sequence, pattern = alien, "X")) %>% 
-    mutate(Header = str_c(genome_id, "_seq", 1:n(), " ", Header)) -> fdta
+    mutate(Sequence = toupper(.data$Sequence)) %>% 
+    mutate(Sequence = str_remove_all(.data$Sequence, "\\*")) %>% 
+    mutate(Length = str_length(.data$Sequence)) %>% 
+    filter(.data$Length >= min.length) %>% 
+    mutate(Sequence = str_replace_all(.data$Sequence, pattern = alien, "X")) %>% 
+    mutate(Header = str_c(genome_id, "_seq", 1:n(), " ", .data$Header)) -> fdta
   if(str_length(discard) > 0){
     fdta %>%
-      filter(!str_detect(Header, pattern = discard)) -> fdta
+      filter(!str_detect(.data$Header, pattern = discard)) -> fdta
   }
   fext <- str_extract(out.file, "\\.[a-zA-Z]+$")
   out.file <- str_replace(out.file, fext, str_c("_", genome_id, fext))

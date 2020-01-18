@@ -36,10 +36,10 @@
 #' file.remove(tf)
 #' 
 #' @export xzcompress
+#' 
 xzcompress <- function(filename, destname = sprintf("%s.xz", filename), temporary = FALSE, 
           skip = FALSE, overwrite = FALSE, remove = TRUE, BFR.SIZE = 1e+07, compression = 6,
-          ...) 
-{
+          ...){
   if(!file.exists(filename)){
     stop("No such file: ", filename)
   }

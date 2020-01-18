@@ -59,11 +59,12 @@
 #' # Clustering with default settings
 #' clst <- bClust(xmpl.bdist)
 #' # Other settings, and verbose
-#' clst <- bClust(xmpl.bdist, linkage = "average", threshold = 0.5, verbose = T)
+#' clst <- bClust(xmpl.bdist, linkage = "average", threshold = 0.5, verbose = TRUE)
 #' 
 #' @importFrom igraph graph.edgelist clusters degree
 #' @importFrom stats hclust as.dist cutree
 #' @importFrom dplyr filter %>% 
+#' @importFrom rlang .data
 #' 
 #' @export bClust
 #' 
@@ -71,7 +72,7 @@ bClust <- function(dist.tbl, linkage = "complete", threshold = 0.75, verbose = F
   if(verbose) cat("bClust:\n")
   linknum <- grep(linkage, c("single", "average", "complete"))
   dist.tbl %>% 
-    filter(Distance < threshold) -> dist.tbl
+    filter(.data$Distance < threshold) -> dist.tbl
   utag <- sort(unique(c(dist.tbl$Query, dist.tbl$Hit))) # Important to sort here!
     
   if(verbose) cat("...constructing graph with", length(utag), "sequences (nodes) and", nrow(dist.tbl), "distances (edges)\n")
