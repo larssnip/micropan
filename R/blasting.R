@@ -110,7 +110,7 @@ blastpAllAll <- function(prot.files, out.folder, e.value = 1, job = 1, threads =
         rname <- str_c(genome_id[j], "_vs_", genome_id[i], ".txt")
         res.files <- list.files(out.folder, pattern = "txt$")
         if(!(rname %in% res.files)){
-          if(verbose) cat("blastAllAll: ", rname, "\n")
+          if(verbose) cat("blastpAllAll: ", rname, "\n")
           input <- str_c("-query ", prot.files[j])
           dbase <- str_c("-db ", db.fil)
           output <- str_c("-out ", file.path(out.folder, rname))

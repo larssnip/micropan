@@ -9,7 +9,7 @@ hmmerScan(in.files, dbase, out.folder, threads = 0, verbose = TRUE)
 \arguments{
 \item{in.files}{A character vector of file names.}
 
-\item{dbase}{The full name of the database to scan.}
+\item{dbase}{The full path-name of the database to scan (text).}
 
 \item{out.folder}{The name of the folder to put the result files.}
 

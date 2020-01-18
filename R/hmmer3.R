@@ -5,7 +5,7 @@
 #' software.
 #' 
 #' @param in.files A character vector of file names.
-#' @param dbase The full name of the database to scan.
+#' @param dbase The full path-name of the database to scan (text).
 #' @param out.folder The name of the folder to put the result files.
 #' @param threads Number of CPU's to use.
 #' @param verbose Logical indicating if textual output should be given to monitor the progress.
@@ -80,7 +80,7 @@
 #' 
 #' @export hmmerScan
 #' 
-hmmerScan <- function( in.files, dbase, out.folder, threads=0, verbose=TRUE ){
+hmmerScan <- function(in.files, dbase, out.folder, threads = 0, verbose = TRUE){
   if(length(dbase) > 1){
     stop("Argument dbase must be a single text")
   }
