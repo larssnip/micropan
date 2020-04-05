@@ -121,17 +121,16 @@
 binomixEstimate <- function(pan.matrix, K.range = 3:5, core.detect.prob = 1.0, verbose = TRUE){
   pan.matrix[which(pan.matrix > 0, arr.ind = T)] <- 1
   y <- table(factor(colSums(pan.matrix), levels = 1:nrow(pan.matrix)))
-  bic.tbl <- tibble(Components = K.range,
-                    Core.size = rep(0, length(K.range)),
-                    Pan.size = rep(0, length(K.range)),
-                    BIC = rep(0, length(K.range)))
+  bic.mat <- matrix(c(K.range, rep(0, 3*length(K.range))), ncol = 4)
+  colnames(bic.mat) <- c("K.range", "Core.size", "Pan.size", "BIC")
   mix.tbl <- NULL
   for(i in 1:length(K.range)){
     if(verbose) cat("binomixEstimate: Fitting", K.range[i], "component model...\n")
     lst <- binomixMachine(y, K.range[i], core.detect.prob)
-    bic.tbl[i,-1] <- lst[[1]]
+    bic.mat[i,-1] <- lst[[1]]
     mix.tbl <- bind_rows(mix.tbl, lst[[2]])
   }
+  bic.tbl <- as_tibble(bic.mat)
   if(bic.tbl[length(K.range),3] == min(bic.tbl[,3])) warning("Minimum BIC at maximum K, increase upper limit of K.range")
   return(list(BIC.tbl = bic.tbl, Mix.tbl = mix.tbl))
 }
