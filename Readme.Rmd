@@ -52,7 +52,7 @@ Let us first have a look at how we can download public genome data. There are ma
 
 First, make a folder for this tutorial, and set this as your working directory in R.
 
-Look up the [NCBI/Genome](https://www.ncbi.nlm.nih.gov/genome) database, and click our way to the [browsing of microbes](https://www.ncbi.nlm.nih.gov/genome/browse#!/prokaryotes/). Here we search for the species *Buchnera aphidicola*. This species has small genomes, making the computations in this tutorial fast. We download the table listing these genomes, and store it with the proper name `Buchnera_aphidicola.txt` into a subfolder named `rawdata/`.
+Look up the [NCBI/Genome](https://www.ncbi.nlm.nih.gov/genome) database, and click your way to the [browsing of microbes](https://www.ncbi.nlm.nih.gov/genome/browse#!/prokaryotes/). Here we search for the species *Buchnera aphidicola*. This species has small genomes, making the computations in this tutorial fast. We download the table listing these genomes, and store it with the proper name `Buchnera_aphidicola.txt` into a subfolder named `rawdata/`.
 
 [Here is a short video](https://mediasite.nmbu.no/Mediasite/Play/13424bec1e7a4a0e9146736830669c341d) on how to do this.
 
@@ -82,7 +82,7 @@ At the time of writing this table contains 65 genomes. To make faster computatio
 
 
 ## Downloading
-We are ready to start downloading, and here is some code to do the job. The genome filenames consists of the `GenBank_ID` and the suffix `_genomic.fna.gz`, at least at the time of writing. Note that we also immediately uncompress the files (using `gunzip()` from the `R.utils` package), since this will be a benefit later.
+We are ready to start downloading, and here is some code to do the job. The genome filenames consists of the `GenBank_ID` and the suffix `_genomic.fna.gz`, at least at the time of writing. Note that we also immediately uncompress the files (using `gunzip()` from the `R.utils` package). The software we use later for finding the genes in the genomes requires uncompressed fasta files as input.
 ```{r, eval=FALSE}
 for(i in 1:nrow(gnm.tbl)){
   filename <- str_c(gnm.tbl$GenBank_ID[i], "_genomic.fna.gz")
@@ -157,12 +157,13 @@ for(i in 1:nrow(gnm.tbl)){
           file.path("faa", str_c(gnm.tbl$GenBank_ID[i], ".faa")))
 }
 ```
-
 Inspect the FASTA files in the `faa/` subfolder to verify they contain proper protein sequences, and that the `GID.tag` information has been added to each filename as well as to the first token of each `Header` in the FASTA files. Here is the top of the first file:
 ```{r}
 readFasta(file.path("faa", str_c(gnm.tbl$GenBank_ID[1], "_", gnm.tbl$GID.tag[1], ".faa"))) %>% 
   head()
 ```
+It is the files in this folder you will need for the rest of the analysis, and everything inside the `tmp/` folder may now be deleted.
+
 
 
 
@@ -171,8 +172,7 @@ readFasta(file.path("faa", str_c(gnm.tbl$GenBank_ID[1], "_", gnm.tbl$GID.tag[1],
 Grouping genes/proteins into gene families is a central part of a pan-genome analysis. Clustering sequences means we need some measure of *distance* between them. Let us find gene families using BLAST.
 
 ## The `blastpAllAll()`
-The idea is to use BLAST to align all proteins against all proteins, and from this compute a distance between all pairs. Most proteins do *not* align, and only those who do have a similarity we take interest in.
-We make a new subfolder `blast/` and use the `blastpAllAll()` function to compare all proteins against all other proteins, writing the resulting files to this new folder:
+The idea is to use BLAST to align all proteins against all proteins, and from this compute a distance between all pairs. Most proteins do *not* align, and we only take interest in those who do have a similarity. We make a new subfolder `blast/` and use the `blastpAllAll()` function to compare all proteins against all other proteins, writing the resulting files to this new folder:
 ```{r, eval=FALSE}
 dir.create("blast")
 faa.files <- list.files("faa", pattern = "\\.faa$") # assuming no other faa-files in this folder
@@ -180,7 +180,7 @@ blastpAllAll(file.path("faa", faa.files), out.folder = "blast", verbose = F)
 ```
 This step is the most time consuming in such analyses, and setting `verbose = T` may be a good idea, to monitor the progress. You may also speed things up by using multiple threads (the `threads` argument) or by starting several R-sessions, and let each session run the same code. In the latter case you must use the `job` option, and give it a unique integer for each R session, i.e. if you run 3 sessions, you use `job=1`, `job=2` and `job=3` in the different sessions. Let them all write to the same `out.folder`, and they will not over-write each other.
 
-Storing such results in files in a separate subfolder is a good idea. If you choose to add more genomes later, these results are already there, and will not be re-computed. Never put any other files into this folder! If you want to re-compute everything, delete the files in the `out.folder` first.
+Storing such results in files in a separate subfolder is a good idea. If you choose to add more genomes later, these results are already there, and will not be re-computed. Never put any other files into this folder! If you want to re-compute something, delete the corresponding files in the `out.folder` first.
 
 
 ## Distances by `bDist()`
@@ -204,7 +204,7 @@ We notice:
 * Some pairs are identical, and most of these are self-alignments. All proteins are identical (`Distance` is 0.0) to themselves.
 * Many distance are large, close to 1.0. We could have lowered the E-value threshold in `bDist()` to eliminate many of these right away.
 
-The distances below 0.75 are the ones we are most interested in. In order to cluster we need to set some distance threshold somewhere, and from this histogram a value of 0.75 seems like a good start. This is a rather large threshold, and we should be prepared to use a smaller value if this results in very few and very large clusters.
+The distances below 0.75 are the ones we are most interested in. In order to cluster we need to set some distance threshold somewhere, and from this histogram a value of 0.75 seems like a good start. This is a rather large threshold, and we should be prepared to use a smaller value if this results in very few and very large clusters. This will vary between organisms, but a threshold around 0.7 is often a good start.
 
 
 
@@ -214,7 +214,7 @@ The `bClust()` uses classical hierarchical clustering based on the distances we 
 * A `complete` linkage clustering
 * And a rather libral (large) threshold
 
-The `complete`linkage means we have exact control of the 'radius' of our clusters ore gene families. The other linkages are less transparent in this sense.
+The `complete`linkage means we have exact control of the 'diameter' of our clusters or gene families. The other linkages are less transparent in this sense.
 
 Let us try this:
 ```{r}
@@ -329,7 +329,7 @@ ggdendrogram(dendro_data(hclust(d.man, method = "average")),
 
 The Manhattan distance is simply how many gene clusters have differing presence/absence status between two genomes, but remember the distances displayed in the tree are average linkage distances between clusters. Change the linkage by changing `method = "average"` in the call to `hclust()`. 
 
-Since the 'cloud-genes' tend to be of a less reliable nature (gene prediction errors), it may be a good idea to *weight* the distance such that differences in the 'shell-genes' (green sectors above) presence/absence becomes more important. Here is how we can do this, and at the same time we also replace the `GID.tag` labels by their corresponding `Name`:
+Since the 'cloud-genes' tend to be of a less reliable nature (gene prediction errors?), it may be a good idea to *weight* the distance such that differences in the 'shell-genes' (green sectors above) presence/absence becomes more important. Here is how we can do this, and at the same time we also replace the `GID.tag` labels by their corresponding `Name`:
 ```{r}
 pm <- panmat.blast                                                 # make a copy
 rownames(pm) <- gnm.tbl$Name[match(rownames(pm), gnm.tbl$GID.tag)] # new rownames

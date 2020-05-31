@@ -76,7 +76,7 @@ panPrep <- function(in.file, genome_id, out.file, protein = TRUE, min.length = 1
   } else {
     alien <- "[^ACGT]"
   }
-  readFasta(in.file) %>% 
+  readFasta(normalizePath(in.file)) %>% 
     mutate(Sequence = toupper(.data$Sequence)) %>% 
     mutate(Sequence = str_remove_all(.data$Sequence, "\\*")) %>% 
     mutate(Length = str_length(.data$Sequence)) %>% 
@@ -87,6 +87,7 @@ panPrep <- function(in.file, genome_id, out.file, protein = TRUE, min.length = 1
     fdta %>%
       filter(!str_detect(.data$Header, pattern = discard)) -> fdta
   }
+  out.file <- normalizePath(out.file)
   fext <- str_extract(out.file, "\\.[a-zA-Z]+$")
   out.file <- str_replace(out.file, fext, str_c("_", genome_id, fext))
   writeFasta(fdta, out.file = out.file)
