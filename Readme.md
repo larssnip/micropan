@@ -109,6 +109,11 @@ Then we do the gene finding from these data:
 gff.tbl <- findGenes("tmp/random.fna")
 ```
 
+    ## Warning: The `x` argument of `as_tibble.matrix()` must have column names if `.name_repair` is omitted as of tibble 2.0.0.
+    ## Using compatibility `.name_repair`.
+    ## This warning is displayed once every 8 hours.
+    ## Call `lifecycle::last_warnings()` to see where this warning was generated.
+
 The resulting GFF-table lists more than 1000 genes, even if the input is completely rubbish! It is quite typical of gene finding softwares that they tend to 'find genes' even if there are none. There are many good reasons for designing them over-sensitive like this, but for pan-genome studies it is not beneficial. However, this table also has a column `Score` given by [prodigal](https://github.com/hyattpd/Prodigal) to each of these 'genes'. A histogram of these scores shows
 
 ``` r
@@ -173,12 +178,12 @@ readFasta(file.path("faa", str_c(gnm.tbl$GenBank_ID[1], "_", gnm.tbl$GID.tag[1],
     ## # A tibble: 6 x 2
     ##   Header                           Sequence                                     
     ##   <chr>                            <chr>                                        
-    ## 1 GID1_seq1 Seqid=AE013218.1;Star… MSKSYLKNFDVIVIGGGHAGTEAAAASARVGCKTLLLTQKITDI…
-    ## 2 GID1_seq2 Seqid=AE013218.1;Star… MSLEKISNPQKYISHHLNHLQIDLCNFKFVEPGKIVSHFWVLNI…
-    ## 3 GID1_seq3 Seqid=AE013218.1;Star… MESLNVDMLYIAVAIMIGLAAIGAAIGIGILGSKFLEGAARQPD…
-    ## 4 GID1_seq4 Seqid=AE013218.1;Star… MNLNATILGQALSFILFVWFCMKYIWPPIIFAIETRQKNIEESL…
-    ## 5 GID1_seq5 Seqid=AE013218.1;Star… MSVLDTIARPYAKAIFELAIENQSIEKWKKTLIFINEIIRSKKI…
-    ## 6 GID1_seq6 Seqid=AE013218.1;Star… MQLNSTEISQLIKERIAQFEVFNQSYNEGTIISVNDGIIKIYGL…
+    ## 1 GID1_seq1 Seqid=AE013218.1;Star~ MSKSYLKNFDVIVIGGGHAGTEAAAASARVGCKTLLLTQKITDI~
+    ## 2 GID1_seq2 Seqid=AE013218.1;Star~ MSLEKISNPQKYISHHLNHLQIDLCNFKFVEPGKIVSHFWVLNI~
+    ## 3 GID1_seq3 Seqid=AE013218.1;Star~ MESLNVDMLYIAVAIMIGLAAIGAAIGIGILGSKFLEGAARQPD~
+    ## 4 GID1_seq4 Seqid=AE013218.1;Star~ MNLNATILGQALSFILFVWFCMKYIWPPIIFAIETRQKNIEESL~
+    ## 5 GID1_seq5 Seqid=AE013218.1;Star~ MSVLDTIARPYAKAIFELAIENQSIEKWKKTLIFINEIIRSKKI~
+    ## 6 GID1_seq6 Seqid=AE013218.1;Star~ MQLNSTEISQLIKERIAQFEVFNQSYNEGTIISVNDGIIKIYGL~
 
 Gene families using BLAST
 =========================
@@ -339,14 +344,14 @@ print(fitted$BIC.tbl)
 ```
 
     ## # A tibble: 6 x 4
-    ##   Components Core.size Pan.size   BIC
-    ##        <int>     <dbl>    <dbl> <dbl>
-    ## 1          3       201      953 3261.
-    ## 2          4        97     1160 3191.
-    ## 3          5        59     1613 3200.
-    ## 4          6         0     1572 3213.
-    ## 5          7         0     1176 3229.
-    ## 6          8         0     1592 3239.
+    ##   K.range Core.size Pan.size   BIC
+    ##     <dbl>     <dbl>    <dbl> <dbl>
+    ## 1       3       201      953 3261.
+    ## 2       4        97     1160 3191.
+    ## 3       5        59     1613 3200.
+    ## 4       6         0     1572 3213.
+    ## 5       7         0     1176 3229.
+    ## 6       8         0     1592 3239.
 
 The minimum BIC-value is found at 4 components, indicating an optimum here. We also see that in this row the estimate of pan-genome size is 1160, and the size of the core-genome is 97.
 
