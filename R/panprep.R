@@ -87,9 +87,10 @@ panPrep <- function(in.file, genome_id, out.file, protein = TRUE, min.length = 1
     fdta %>%
       filter(!str_detect(.data$Header, pattern = discard)) -> fdta
   }
-  out.file <- normalizePath(out.file)
+  out.file <- file.path(normalizePath(dirname(out.file)),
+                        basename(out.file))
   fext <- str_extract(out.file, "\\.[a-zA-Z]+$")
-  out.file <- str_replace(out.file, fext, str_c("_", genome_id, fext))
+  out.file <- str_replace(out.file, str_c(fext, "$"), str_c("_", genome_id, fext))
   writeFasta(fdta, out.file = out.file)
   return(out.file)
 }

@@ -110,7 +110,7 @@ tibble(Header = "Random_noise",
   writeFasta(out.file = "tmp/random.fna")
 ```
 Then we do the gene finding from these data:
-```{r}
+```{r, warning=TRUE}
 gff.tbl <- findGenes("tmp/random.fna")
 ```
 The resulting GFF-table lists more than 1000 genes, even if the input is completely rubbish! It is quite typical of gene finding softwares that they tend to 'find genes' even if there are none. There are many good reasons for designing them over-sensitive like this, but for pan-genome studies it is not beneficial. However, this table also has a column `Score` given by [prodigal](https://github.com/hyattpd/Prodigal) to each of these 'genes'. A histogram of these scores shows
