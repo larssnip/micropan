@@ -106,9 +106,12 @@ bDist <- function(blast.files, e.value = 1, verbose = TRUE){
         mutate(Pair = sortPaste(.data$Query, .data$Hit)) %>% 
         distinct(.data$Pair, .keep_all = T) %>% 
         select(-.data$Evalue, -.data$Pair) -> tbl
+      
+      browser()
+      
       idx.q <- match(tbl$Query, max.tbl$Query)
       idx.h <- match(tbl$Hit,   max.tbl$Query)
-      if(sum(is.na(idx.q)) > 0) stop("Self-alignment lacking for Query", which(is.na(idx.q)), "in blast.file", blast.files[i], "\n")
+      if(sum(is.na(idx.q)) > 0) stop("Self-alignment lacking for Query ", str_c(which(is.na(idx.q)), collapse = ","), " in blast.file", blast.files[i], "\n")
       if(sum(is.na(idx.h)) > 0) stop("Self-alignment lacking for Hit", which(is.na(idx.h)), "in blast.file", blast.files[i], "\n")
       tbl %>% 
         mutate(Distance = 1 - (2 * .data$Bitscore)/(max.tbl$Bitscore[idx.q] + max.tbl$Bitscore[idx.h])) %>% 
