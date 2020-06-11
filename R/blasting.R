@@ -102,6 +102,7 @@ blastpAllAll <- function(prot.files, out.folder, e.value = 1, job = 1, threads =
     } else {
       outfmt <- "'6 qseqid sseqid evalue bitscore'"
     }
+    out.folder <- normalizePath(out.folder)
     for(i in 1:length(prot.files)){
       log.fil <- file.path(out.folder, "log.txt")
       db.fil <- file.path(out.folder, str_c("blastDB", job))
@@ -124,9 +125,7 @@ blastpAllAll <- function(prot.files, out.folder, e.value = 1, job = 1, threads =
         }
       }
     }
-    ok <- file.remove(str_c(db.fil, ".pin"))
-    ok <- file.remove(str_c(db.fil, ".phr"))
-    ok <- file.remove(str_c(db.fil, ".psq"))
+    ok <- file.remove(list.files(out.folder, pattern = "blastDB", full.names = T))
     ok <- file.remove(log.fil)
     if(file.exists(str_c(log.fil, ".perf"))) ok <- file.remove(str_c(log.fil, ".perf"))
     invisible(TRUE)
