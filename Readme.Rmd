@@ -93,6 +93,7 @@ for(i in 1:nrow(gnm.tbl)){
 ```
 We could also have done this by using the accession numbers in the columns `Replicons` and `WGS` of the downloaded table, and the functions `entrezDownload()` and `getAccessions()` in this R package. They will download from the Nucleotide database, resulting in uncompressed FASTA files.
 
+A note on compressed files: Below we make use of the software *prodigal* to find genes, and this cannot take compressed fasta files as input. For reading or writing files in R using `readFasta()` or `writeFasta()` you may very well work with compressed files.
 
 
 
@@ -164,6 +165,7 @@ readFasta(file.path("faa", str_c(gnm.tbl$GenBank_ID[1], "_", gnm.tbl$GID.tag[1],
   head()
 ```
 
+Instead of having two loops as we did here (to make it very transparent) you could have added the `panPrep()` to the first loop to save some time and code.
 
 
 
@@ -206,6 +208,15 @@ We notice:
 
 The distances below 0.75 are the ones we are most interested in. In order to cluster we need to set some distance threshold somewhere, and from this histogram a value of 0.75 seems like a good start. This is a rather large threshold, and we should be prepared to use a smaller value if this results in very few and very large clusters.
 
+
+## For huge data sets
+If you have many genomes, say more than 100, you may find the reading of the files takes quite some time. Then you may do this in a separate step, using `readBlastSelf()` and `readBlastPair()` and save their results to some `.RData` files. This means you can read chunks of files and perhaps run it in parallell. These functions will return tables of BLAST results that you bind together into one long table and use as input to `bDist()` instead of the filenames, using the argument `blast.tbl` instead of `blast.files` in `bDist()`. Here is how we may do it, using the small example:
+```{r}
+self.tbl <- readBlastSelf(file.path("blast", list.files("blast", pattern = "txt$")))
+pair.tbl <- readBlastPair(file.path("blast", list.files("blast", pattern = "txt$")))
+dst.tbl <- bDist(blast.tbl = bind_rows(self.tbl, pair.tbl))
+```
+The `self.tbl` is never super-big, but the `pair.tbl` may have many million rows. Instead of giving it all files to read, it may be possible to speed things up by processing many chunks in parallell. Still, the `bDist()` will need all rows in the end and you may run out of memory if the number of genomes is too large.
 
 
 ## Clustering by `bClust`

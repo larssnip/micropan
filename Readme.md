@@ -85,6 +85,8 @@ for(i in 1:nrow(gnm.tbl)){
 
 We could also have done this by using the accession numbers in the columns `Replicons` and `WGS` of the downloaded table, and the functions `entrezDownload()` and `getAccessions()` in this R package. They will download from the Nucleotide database, resulting in uncompressed FASTA files.
 
+A note on compressed files: Below we make use of the software *prodigal* to find genes, and this cannot take compressed fasta files as input. For reading or writing files in R using `readFasta()` or `writeFasta()` you may very well work with compressed files.
+
 Finding coding genes
 ====================
 
@@ -108,6 +110,11 @@ Then we do the gene finding from these data:
 ``` r
 gff.tbl <- findGenes("tmp/random.fna")
 ```
+
+    ## Warning: The `x` argument of `as_tibble.matrix()` must have column names if `.name_repair` is omitted as of tibble 2.0.0.
+    ## Using compatibility `.name_repair`.
+    ## This warning is displayed once every 8 hours.
+    ## Call `lifecycle::last_warnings()` to see where this warning was generated.
 
 The resulting GFF-table lists more than 1000 genes, even if the input is completely rubbish! It is quite typical of gene finding softwares that they tend to 'find genes' even if there are none. There are many good reasons for designing them over-sensitive like this, but for pan-genome studies it is not beneficial. However, this table also has a column `Score` given by [prodigal](https://github.com/hyattpd/Prodigal) to each of these 'genes'. A histogram of these scores shows
 
@@ -180,6 +187,8 @@ readFasta(file.path("faa", str_c(gnm.tbl$GenBank_ID[1], "_", gnm.tbl$GID.tag[1],
     ## 5 GID1_seq5 Seqid=AE013218.1;Star~ MSVLDTIARPYAKAIFELAIENQSIEKWKKTLIFINEIIRSKKI~
     ## 6 GID1_seq6 Seqid=AE013218.1;Star~ MQLNSTEISQLIKERIAQFEVFNQSYNEGTIISVNDGIIKIYGL~
 
+Instead of having two loops as we did here (to make it very transparent) you could have added the `panPrep()` to the first loop to save some time and code.
+
 Gene families using BLAST
 =========================
 
@@ -209,10 +218,17 @@ Based on the results from above we compute distances between all proteins. Actua
 dst.tbl <- bDist(file.path("blast", list.files("blast", pattern = "txt$")))
 ```
 
+    ## readBlastSelf:
+    ##    ...received 55 blast-files...
+    ##    ...found 10 self-alignment files...
+    ##    ...returns 10716 alignment results
+    ## readBlastPairs:
+    ##    ...received 55 blast-files...
+    ##    ...found 45 alignment files who are NOT self-alignments...
+    ##    ...returns 42342 alignment results
     ## bDist:
-    ## ...reading 10 self alignments...
-    ## ...found BLAST results for 7715 unique sequences...
-    ## ...reading remaining alignments...
+    ##    ...found 47803 alignments...
+    ##    ...where 4542 are self-alignments...
 
 Notice how we use *all* result files in the `blast/` subfolder as input here. Thus, you need this set of results to be complete, and there should be no other files in this folder. Make several folders if you want to have results for various collections of genomes!
 
@@ -235,6 +251,39 @@ We notice:
 
 The distances below 0.75 are the ones we are most interested in. In order to cluster we need to set some distance threshold somewhere, and from this histogram a value of 0.75 seems like a good start. This is a rather large threshold, and we should be prepared to use a smaller value if this results in very few and very large clusters.
 
+For huge data sets
+------------------
+
+If you have many genomes, say more than 100, you may find the reading of the files takes quite some time. Then you may do this in a separate step, using `readBlastSelf()` and `readBlastPair()` and save their results to some `.RData` files. This means you can read chunks of files and perhaps run it in parallell. These functions will return tables of BLAST results that you bind together into one long table and use as input to `bDist()` instead of the filenames, using the argument `blast.tbl` instead of `blast.files` in `bDist()`. Here is how we may do it, using the small example:
+
+``` r
+self.tbl <- readBlastSelf(file.path("blast", list.files("blast", pattern = "txt$")))
+```
+
+    ## readBlastSelf:
+    ##    ...received 55 blast-files...
+    ##    ...found 10 self-alignment files...
+    ##    ...returns 10716 alignment results
+
+``` r
+pair.tbl <- readBlastPair(file.path("blast", list.files("blast", pattern = "txt$")))
+```
+
+    ## readBlastPairs:
+    ##    ...received 55 blast-files...
+    ##    ...found 45 alignment files who are NOT self-alignments...
+    ##    ...returns 42342 alignment results
+
+``` r
+dst.tbl <- bDist(blast.tbl = bind_rows(self.tbl, pair.tbl))
+```
+
+    ## bDist:
+    ##    ...found 47803 alignments...
+    ##    ...where 4542 are self-alignments...
+
+The `self.tbl` is never super-big, but the `pair.tbl` may have many million rows. Instead of giving it all files to read, it may be possible to speed things up by processing many chunks in parallell. Still, the `bDist()` will need all rows in the end and you may run out of memory if the number of genomes is too large.
+
 Clustering by `bClust`
 ----------------------
 
@@ -251,7 +300,7 @@ Let us try this:
 clst.blast <- bClust(dst.tbl, linkage = "complete", threshold = 0.75)
 ```
 
-This results in 749 gene families or clusters. The largest cluster has 14 members, which is not very large given we have 10 genomes, and all core gene families should have at least 10 members. If many of the largest clusters become huge compared to the number of genomes, the threshold is probably too liberal (too large).
+This results in 746 gene families or clusters. The largest cluster has 14 members, which is not very large given we have 10 genomes, and all core gene families should have at least 10 members. If many of the largest clusters become huge compared to the number of genomes, the threshold is probably too liberal (too large).
 
 Note that the clustering vector `clst.blast` contains, in its names, the unique information to identify a protein and the genome from which it comes. Let us briefly have a look at which proteins belong to cluster 1:
 
@@ -285,7 +334,7 @@ tibble(Clusters = as.integer(table(factor(colSums(panmat.blast > 0),
   geom_col() + labs(title = "Number of clusters found in 1, 2,...,all genomes")
 ```
 
-![](Readme_files/figure-markdown_github/unnamed-chunk-20-1.png)
+![](Readme_files/figure-markdown_github/unnamed-chunk-21-1.png)
 
 Pan-genome size
 ---------------
@@ -305,7 +354,7 @@ print(heaps.est)
 ```
 
     ##  Intercept      alpha 
-    ## 284.535972   1.472428
+    ## 283.942276   1.479329
 
 which is the case here. This means the growth of new gene clusters as we sample more and more genomes tend to level off, see the Help-file for `heaps()` for more details.
 
@@ -315,7 +364,7 @@ So how big does it look like this pan-genome will be? The `chao()` shed some lig
 print(chao(panmat.blast))
 ```
 
-    ## [1] 1121
+    ## [1] 1143
 
 which is an estimate of the total number of gene clusters for this species. When based on only 10 genomes, this is a rather uncertain estimate!
 
@@ -341,12 +390,12 @@ print(fitted$BIC.tbl)
     ## # A tibble: 6 x 4
     ##   K.range Core.size Pan.size   BIC
     ##     <dbl>     <dbl>    <dbl> <dbl>
-    ## 1       3       201      953 3261.
-    ## 2       4        97     1160 3191.
-    ## 3       5        59     1613 3200.
-    ## 4       6         0     1572 3213.
-    ## 5       7         0     1176 3229.
-    ## 6       8         0     1592 3239.
+    ## 1       3       201      966 3247.
+    ## 2       4       115     1214 3177.
+    ## 3       5        71     1641 3185.
+    ## 4       6         0     1427 3199.
+    ## 5       7         0     1460 3212.
+    ## 6       8         0     1310 3226.
 
 The minimum BIC-value is found at 4 components, indicating an optimum here. We also see that in this row the estimate of pan-genome size is 1160, and the size of the core-genome is 97.
 
@@ -365,7 +414,7 @@ fig4 <- fitted$Mix.tbl %>%
 print(fig4)
 ```
 
-![](Readme_files/figure-markdown_github/unnamed-chunk-27-1.png)
+![](Readme_files/figure-markdown_github/unnamed-chunk-28-1.png)
 
 We see that roughly half the pan-genome consists of the pink 'cloud-genes' with very low detection probability, i.e. gene clusters seen in very few genomes only. Also, in addition to the core-genes always observed, there is a component of almost-core-genes, seen in almost all genomes. Note that in `binomixEstimate()` you may set the `core.detection.prob` (slightly) lower than 1.0 to allow core-genes to be absent from some genomes. This is reasonable if we have incomplete genomes, genes may be there but is not detected due to incomplete sequence data.
 
@@ -384,7 +433,7 @@ fig5 <- fitted$Mix.tbl %>%
 print(fig5)
 ```
 
-![](Readme_files/figure-markdown_github/unnamed-chunk-28-1.png)
+![](Readme_files/figure-markdown_github/unnamed-chunk-29-1.png)
 
 As extected, in a single genome the 'cloud-genes' (pink) are rare.
 
@@ -405,7 +454,7 @@ ggdendrogram(dendro_data(hclust(d.man, method = "average")),
   labs(x = "Genomes", y = "Manhattan distance", title = "Pan-genome dendrogram")
 ```
 
-![](Readme_files/figure-markdown_github/unnamed-chunk-30-1.png)
+![](Readme_files/figure-markdown_github/unnamed-chunk-31-1.png)
 
 The Manhattan distance is simply how many gene clusters have differing presence/absence status between two genomes, but remember the distances displayed in the tree are average linkage distances between clusters. Change the linkage by changing `method = "average"` in the call to `hclust()`.
 
@@ -422,7 +471,7 @@ distManhattan(pm, weights = weights) %>%
   labs(x = "Genomes", y = "Weighted Manhattan distance", title = "Pan-genome dendrogram")
 ```
 
-![](Readme_files/figure-markdown_github/unnamed-chunk-31-1.png)
+![](Readme_files/figure-markdown_github/unnamed-chunk-32-1.png)
 
 There are of course many variations of this dendrogram, by using other distances, different weighting etc.
 

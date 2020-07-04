@@ -2,12 +2,14 @@
 % Please edit documentation in R/bdist.R
 \name{bDist}
 \alias{bDist}
-\title{Computes distances between sequences based on BLAST results}
+\title{Computes distances between sequences}
 \usage{
-bDist(blast.files, e.value = 1, verbose = TRUE)
+bDist(blast.files = NULL, blast.tbl = NULL, e.value = 1, verbose = TRUE)
 }
 \arguments{
-\item{blast.files}{A text vector of filenames.}
+\item{blast.files}{A text vector of BLAST result filenames.}
+
+\item{blast.tbl}{A table with BLAST results.}
 
 \item{e.value}{A threshold E-value to immediately discard (very) poor BLAST alignments.}
 
@@ -19,22 +21,26 @@ and \samp{Distance}. Each row corresponds to a pair of sequences having at least
 them. All pairs \emph{not} listed in the output have distance 1.0 between them.
 }
 \description{
-Reads a complete set of result files from a BLAST search and
-computes distance between all sequences based on the BLAST bit-score.
+Computes distance between all sequences based on the BLAST bit-scores.
 }
 \details{
-Each input file must be a BLAST result file produced by \code{\link{blastpAllAll}}.
+The essential input is either a vector of BLAST result filenames (\code{blast.files}) or a
+table of the BLAST results (\code{blast.tbl}). It is no point in providing both, then \code{blast.tbl} is ignored.
+
+For normal sized data sets (e.g. less than 100 genomes), you would provide the BLAST filenames as the argument
+\code{blast.files} to this function.
+Then results are read, and distances are computed. Only if you have huge data sets, you may find it more efficient to 
+read the files using \code{\link{readBlastSelf}} and \code{\link{readBlastPair}} separately, and then provide as the
+argument \code{blast.tbl]} the table you get from binding these results. In all cases, the BLAST result files must
+have been produced by \code{\link{blastpAllAll}}.
 
 Setting a small \samp{e.value} threshold can speed up the computation and reduce the size of the
 output, but you may loose some alignments that could produce smallish distances for short sequences.
 
 The distance computed is based on alignment bitscores. Assume the alignment of query A against hit B
-has a bitscore of S(A,B). Then, we also typically find an alignment of query B against hit A with
-bitscore S(B,A). The maximum of these two are used as the bitscore for this pair, and in virtually
-all cases S(A,B)=S(B,A) anyway. The distance is D(A,B)=1-2*S(A,B)/(S(A,A)+S(B,B)) where S(A,A) (or S(B,B))
-is the bitscore of aligning A (or B) against itself. A distance of
-0.0 means A and B are identical. The maximum possible distance is 1.0, meaning there is no BLAST hit
-found either way.
+has a bitscore of S(A,B). The distance is D(A,B)=1-2*S(A,B)/(S(A,A)+S(B,B)) where S(A,A) and S(B,B) are
+the self-alignment bitscores, i.e. the scores of aligning against itself. A distance of
+0.0 means A and B are identical. The maximum possible distance is 1.0, meaning there is no BLAST between A and B.
 
 This distance should not be interpreted as lack of identity! A distance of 0.0 means 100\% identity,
 but a distance of 0.25 does \emph{not} mean 75\% identity. It has some resemblance to an evolutinary
@@ -59,14 +65,20 @@ blast.files <- unlist(lapply(blast.files, xzuncompress))
 # Computing pairwise distances
 blast.dist <- bDist(blast.files)
 
+# Read files separately, then use bDist
+self.tbl <- readBlastSelf(blast.files)
+pair.tbl <- readBlastPair(blast.files)
+blast.dist <- bDist(blast.tbl = bind_rows(self.tbl, pair.tbl))
+
 # ...and cleaning...
 ok <- file.remove(blast.files)
 
-# See also example for blastpAllAll
+# See also example for blastpAl
 
 }
 \seealso{
-\code{\link{blastpAllAll}}, \code{\link{bClust}}, \code{\link{isOrtholog}}.
+\code{\link{blastpAllAll}}, \code{\link{readBlastSelf}}, \code{\link{readBlastPair}},
+\code{\link{bClust}}, \code{\link{isOrtholog}}.
 }
 \author{
 Lars Snipen and Kristian Hovde Liland.
