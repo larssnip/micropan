@@ -16,8 +16,9 @@ bDist(blast.files = NULL, blast.tbl = NULL, e.value = 1, verbose = TRUE)
 \item{verbose}{Logical, indicating if textual output should be given to monitor the progress.}
 }
 \value{
-The function returns a \samp{tibble} with columns \samp{Query}, \samp{Hit}, \samp{Bitscore}
-and \samp{Distance}. Each row corresponds to a pair of sequences having at least one BLAST hit between
+The function returns a table with columns \samp{Dbase}, \samp{Query}, \samp{Bitscore}
+and \samp{Distance}. Each row corresponds to a pair of sequences (Dbase and Query sequences) having at least
+one BLAST hit between
 them. All pairs \emph{not} listed in the output have distance 1.0 between them.
 }
 \description{

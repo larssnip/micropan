@@ -4,7 +4,7 @@
 \alias{bClust}
 \title{Clustering sequences based on pairwise distances}
 \usage{
-bClust(dist.tbl, linkage = "complete", threshold = 0.75, verbose = FALSE)
+bClust(dist.tbl, linkage = "complete", threshold = 0.75, verbose = TRUE)
 }
 \arguments{
 \item{dist.tbl}{A \code{tibble} with pairwise distances.}

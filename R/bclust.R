@@ -61,66 +61,73 @@
 #' # Other settings, and verbose
 #' clst <- bClust(xmpl.bdist, linkage = "average", threshold = 0.5, verbose = TRUE)
 #' 
-#' @importFrom igraph graph.edgelist clusters degree
+#' @importFrom igraph graph_from_edgelist components degree
 #' @importFrom stats hclust as.dist cutree
 #' @importFrom dplyr filter %>% 
 #' @importFrom rlang .data
 #' 
 #' @export bClust
 #' 
-bClust <- function(dist.tbl, linkage = "complete", threshold = 0.75, verbose = FALSE){
+bClust <- function(dist.tbl, linkage = "complete", threshold = 0.75, verbose = TRUE){
   if(verbose) cat("bClust:\n")
   linknum <- grep(linkage, c("single", "average", "complete"))
   dist.tbl %>% 
     filter(.data$Distance < threshold) -> dist.tbl
-  utag <- sort(unique(c(dist.tbl$Query, dist.tbl$Hit))) # Important to sort here!
+  utag <- sort(unique(c(dist.tbl$Dbase, dist.tbl$Query))) # Important to sort here!
     
   if(verbose) cat("...constructing graph with", length(utag), "sequences (nodes) and", nrow(dist.tbl), "distances (edges)\n")
-  M <- matrix(as.numeric(factor(c(dist.tbl$Query, dist.tbl$Hit), levels = utag)), ncol = 2, byrow = F)
-  g <- graph.edgelist(M, directed = F)
-  cls <- clusters(g)
+  M <- matrix(as.numeric(factor(c(dist.tbl$Dbase, dist.tbl$Query), levels = utag)), ncol = 2, byrow = F)
+  g <- graph_from_edgelist(M, directed = F)
+  cls <- components(g)
   if(verbose) cat("...found", cls$no, "single linkage clusters\n")
-  clustering <- cls$membership
-  names(clustering) <- utag
+  tibble(cluster = cls$membership,
+         tag = utag) -> cls.tbl
   
   if(linknum > 1){
-    ucls <- sort(unique(clustering))
-    incomplete <- sapply(ucls, function(j){
+    ucls <- sort(unique(cls.tbl$cluster))
+    incomplete <- which(sapply(ucls, function(j){
       v <- which(cls$membership == j)
       degg <- degree(g, v)
       return(min(degg) < (length(degg) + 1))
-    })
-    if(verbose) cat("...found", sum(incomplete), "incomplete clusters\n")
-    if(sum(incomplete) > 0){
-      clustering2 <- clustering * 1000
-      idx.c <- which(incomplete)                   # the ucls who are incomplete
-      for(i in 1:length(idx.c)){   # for each incomplete cluster
-        idx <- which(clustering == ucls[idx.c[i]])
-        tag <- names(clustering[idx])
-        D <- matrix(1, nrow = length(idx), ncol = length(idx))
-        rownames(D) <- colnames(D) <- tag
-        idd <- which((dist.tbl$Query %in% tag) | (dist.tbl$Hit %in% tag))
-        a <- as.numeric(factor(dist.tbl$Query[idd], levels = tag))
-        b <- as.numeric(factor(dist.tbl$Hit[idd], levels = tag))
-        D[matrix(c(a,b), ncol = 2, byrow = F)] <- dist.tbl$Distance[idd]
-        D[matrix(c(b,a), ncol = 2, byrow = F)] <- dist.tbl$Distance[idd]
+    }))
+    if(verbose) cat("...found", length(incomplete), "incomplete clusters\n")
+    if(length(incomplete) > 0){
+      cls.tbl %>% 
+        filter(.data$cluster %in% incomplete) %>% 
+        mutate(cluster = .data$cluster * 1000) -> inc.tbl
+      cls.tbl %>% 
+        filter(!(.data$cluster %in% incomplete)) -> cls.tbl
+      ucls.c <- unique(inc.tbl$cluster)
+      for(i in 1:length(ucls.c)){   # for each incomplete cluster
+        inc.tbl %>% 
+          filter(.data$cluster == ucls.c[i]) -> tbl
+        D <- matrix(1, nrow = nrow(tbl), ncol = nrow(tbl))
+        rownames(D) <- colnames(D) <- tbl$tag
+        dist.tbl %>% 
+          filter(.data$Dbase %in% tbl$tag | .data$Query %in% tbl$tag) %>% 
+          mutate(Dbase = factor(.data$Dbase, levels = tbl$tag)) %>% 
+          mutate(Query = factor(.data$Query, levels = tbl$tag)) -> d.tbl
+        M <- matrix(c(as.integer(d.tbl$Dbase), as.integer(d.tbl$Query)), ncol = 2, byrow = F)
+        D[M] <- d.tbl$Distance
+        D[M[,c(2,1)]] <- d.tbl$Distance
         if(linknum == 2){
           clst <- hclust(as.dist(D), method = "average")
         } else {
           clst <- hclust(as.dist(D), method = "complete")
         }
-        clustering2[idx] <- clustering2[idx] + cutree(clst, h = threshold)
-        if(verbose) cat(i, "/", length(idx.c), "\r")
+        tbl %>% 
+          mutate(cluster = .data$cluster + cutree(clst, h = threshold)) %>% 
+          bind_rows(cls.tbl) -> cls.tbl
+        if(verbose) cat(i, "/", length(ucls.c), "\r")
       }
-      clustering <- clustering2
     }
   }
-  fclustering <- as.integer(factor(clustering))  # to get values 1,2,3,...
-  names(fclustering) <- names(clustering)
-  if(verbose) cat("...ended with", length(unique(fclustering)),
+  clustering <- as.integer(factor(cls.tbl$cluster))  # to get values 1,2,3,...
+  names(clustering) <- cls.tbl$tag
+  if(verbose) cat("...ended with", length(unique(clustering)),
                   "clusters, largest cluster has",
-                  max(table(fclustering)), "members\n")
-  return(sort(fclustering))
+                  max(table(clustering)), "members\n")
+  return(sort(clustering))
 }
 
 

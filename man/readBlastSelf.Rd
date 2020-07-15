@@ -15,8 +15,9 @@ readBlastSelf(blast.files, e.value = 1, verbose = TRUE)
 \item{verbose}{Logical, indicating if textual output should be given to monitor the progress.}
 }
 \value{
-The functions returns a table with columns \samp{Query}, \samp{Hit}, \samp{Bitscore}
-and \samp{Distance}. Each row corresponds to a pair of sequences having at least one BLAST hit between
+The functions returns a table with columns \samp{Dbase}, \samp{Query}, \samp{Bitscore}
+and \samp{Distance}. Each row corresponds to a pair of sequences (a Dbase and a Query sequence) having at least
+one BLAST hit between
 them. All pairs \emph{not} listed have distance 1.0 between them. You should normally bind the output from 
 \code{readBlastSelf} to the ouptut from \code{readBlastPair} and use the result as input to \code{\link{bDist}}.
 }
@@ -26,10 +27,10 @@ Reads files from a search with blastpAllAll
 \details{
 The filenames given as input must refer to BLAST result files produced by \code{\link{blastpAllAll}}.
 
-With \code{readBlastSelf} you onmly read the self-alignment results, i.e. blasting a genome against itself. With
+With \code{readBlastSelf} you only read the self-alignment results, i.e. blasting a genome against itself. With
 \code{readBlastPair} you read all the other files, i.e. different genomes compared. You may use all blast file
 names as input to both, they will select the proper files based on their names, e.g. GID1_vs_GID1.txt is read
-by \code{readBlastSelf} while GID1_vs_GID2.txt is read by \code{readBlastPair}.
+by \code{readBlastSelf} while GID2_vs_GID1.txt is read by \code{readBlastPair}.
 
 Setting a small \samp{e.value} threshold will filter the alignment, and may speed up this and later processing,
 but you may also loose some important alignments for short sequences.

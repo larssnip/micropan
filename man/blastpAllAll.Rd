@@ -10,22 +10,22 @@ blastpAllAll(
   e.value = 1,
   job = 1,
   threads = 1,
+  start.at = 1,
   verbose = TRUE
 )
 }
 \arguments{
-\item{prot.files}{A vector with the names of the FASTA files where the protein sequences of
-each genome is found.}
+\item{prot.files}{A vector with FASTA filenames.}
 
-\item{out.folder}{The name of the folder where the result files should end up.}
+\item{out.folder}{The folder where the result files should end up.}
 
-\item{e.value}{The chosen E-value threshold in BLAST. Default is \samp{e.value = 1}, a smaller value
-will speed up the search at the cost of less sensitivity.}
+\item{e.value}{The chosen E-value threshold in BLAST.}
 
-\item{job}{An integer to separate multiple jobs. You may want to run several jobs in parallell,
-and each job should have different number here to avoid confusion on databases.}
+\item{job}{An integer to separate multiple jobs.}
 
 \item{threads}{The number of CPU's to use.}
+
+\item{start.at}{An integer to specify where in the file-list to start BLASTing.}
 
 \item{verbose}{Logical, if \code{TRUE} some text output is produced to monitor the progress.}
 }
@@ -41,7 +41,8 @@ within and across genomes.
 \details{
 A basic step in pangenomics and many other comparative studies is to cluster proteins into
 groups or families. One commonly used approach is based on BLASTing. This function uses the
-\samp{blast+} software available for free from NCBI (Camacho et al, 2009). 
+\samp{blast+} software available for free from NCBI (Camacho et al, 2009). More precisely, the blastp
+algorithm with the BLOSUM45 scoring matrix and all composition based statistics turned off.
 
 A vector listing FASTA files of protein sequences is given as input in \samp{prot.files}. These files
 must have the genome_id in the first token of every header, and in their filenames as well, i.e. all input
@@ -52,11 +53,14 @@ using this function, see \code{\link[microseq]{translate}}.
 In the first version of this package we used reciprocal BLASTing, i.e. we computed both genome A against
 B and B against A. This may sometimes produce slightly different results, but in reality this is too
 costly compared to its gain, and we now only make one of the above searches. This basically halves the
-number of searches. This step is still very time consuming for larger number of genomes.
+number of searches. This step is still very time consuming for larger number of genomes. Note that the 
+protein files are sorted by the genome_id (part of filename) inside this function. This is to ensure a 
+consistent ordering irrespective of how they are enterred.
 
 For every pair of genomes a result file is produced. If two genomes have genome_id's \samp{GID111},
-and \samp{GID222} then the result file \samp{GID111_vs_GID222.txt} (or \samp{GID222_vs_GID111.txt}) will
-be found in \samp{out.folder} after the completion of this search.
+and \samp{GID222} then the result file \samp{GID222_vs_GID111.txt} will
+be found in \samp{out.folder} after the completion of this search. The last of the two genome_id is always
+the first in alphabetical order of the two.
 
 The \samp{out.folder} is scanned for already existing result files, and \code{\link{blastpAllAll}} never
 overwrites an existing result file. If a file with the name \samp{GID111_vs_GID222.txt} already exists in
@@ -67,8 +71,10 @@ BLAST the new combinations without repeating previous comparisons.
 This search can be slow if the genomes contain many proteins and it scales quadratically in the number of
 input files. It is best suited for the study of a smaller number of genomes. By
 starting multiple R sessions, you can speed up the search by running \code{\link{blastpAllAll}} from each R
-session, using the same \samp{out.folder} but different integers for the \code{job} option. If you are
-using a computing cluster you can also increase the number of CPUs by increasing \code{threads}.
+session, using the same \samp{out.folder} but different integers for the \code{job} option. At the same
+time you may also want to start the BLASTing at different places in the file-list, by giving larger values
+to the argument \code{start.at}. This is 1 by default, i.e. the BLASTing starts at the first protein file.
+If you are using a multicore computer you can also increase the number of CPUs by increasing \code{threads}.
 
 The result files are tab-separated text files, and can be read into R, but more
 commonly they are used as input to \code{\link{bDist}} to compute distances between sequences for subsequent

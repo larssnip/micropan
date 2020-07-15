@@ -46,19 +46,19 @@ Look up the [NCBI/Genome](https://www.ncbi.nlm.nih.gov/genome) database, and cli
 The genome table
 ----------------
 
-Regardless of how you obtain the genome data, it is strongly reccomended you make a *genome table* where each row lists all relevant information about each genome in your pan-genome study. This table typically contains some name and other information for each genome, and the GID.tag required here. The latter is a unique genome identifier consisting of the text `"GID"` followed by an integer. Several of the functions in this package search for this information using the regular expression `"GID[0-9]+"`, which means you have to follow this exact pattern.
+Regardless of how you obtain the genome data, it is strongly reccomended you make a *genome table* where each row lists all relevant information about each genome in your pan-genome study. This table typically contains some name and other information for each genome, and the `genome_id` required. The latter is a unique genome identifier consisting of the text `"GID"` followed by an integer. Several of the functions in this package search for this information using the regular expression `"GID[0-9]+"`, which means you have to follow this exact pattern.
 
 Let us read the comma-separated table we downloaded into R and
 
 -   Select the columns we find relevant
--   Add the `GID.tag` column
+-   Add the `genome_id` column
 -   Add a `GenBank_ID` column (see below)
 -   Slice only a subset of the genomes, to speed up this tutorial
 
 ``` r
 suppressMessages(read_delim("rawdata/Buchnera_aphidicola.txt", delim = ",")) %>% 
   select(Name = `#Organism Name`, Strain, Level, GenBank_FTP = `GenBank FTP`) %>% 
-  mutate(GID.tag = str_c("GID", 1:n())) %>% 
+  mutate(genome_id = str_c("GID", 1:n())) %>% 
   mutate(GenBank_ID = str_remove(GenBank_FTP, "^.+/")) %>% 
   slice(1:10) -> gnm.tbl
 ```
@@ -111,11 +111,6 @@ Then we do the gene finding from these data:
 gff.tbl <- findGenes("tmp/random.fna")
 ```
 
-    ## Warning: The `x` argument of `as_tibble.matrix()` must have column names if `.name_repair` is omitted as of tibble 2.0.0.
-    ## Using compatibility `.name_repair`.
-    ## This warning is displayed once every 8 hours.
-    ## Call `lifecycle::last_warnings()` to see where this warning was generated.
-
 The resulting GFF-table lists more than 1000 genes, even if the input is completely rubbish! It is quite typical of gene finding softwares that they tend to 'find genes' even if there are none. There are many good reasons for designing them over-sensitive like this, but for pan-genome studies it is not beneficial. However, this table also has a column `Score` given by [prodigal](https://github.com/hyattpd/Prodigal) to each of these 'genes'. A histogram of these scores shows
 
 ``` r
@@ -165,7 +160,7 @@ Before we are done with this part, we need to *prepare* the files for later, usi
 dir.create("faa")
 for(i in 1:nrow(gnm.tbl)){
   panPrep(file.path("tmp", str_c(gnm.tbl$GenBank_ID[i], ".faa")),
-          gnm.tbl$GID.tag[i],
+          gnm.tbl$genome_id[i],
           file.path("faa", str_c(gnm.tbl$GenBank_ID[i], ".faa")))
 }
 ```
@@ -173,7 +168,7 @@ for(i in 1:nrow(gnm.tbl)){
 Inspect the FASTA files in the `faa/` subfolder to verify they contain proper protein sequences, and that the `GID.tag` information has been added to each filename as well as to the first token of each `Header` in the FASTA files. Here is the top of the first file:
 
 ``` r
-readFasta(file.path("faa", str_c(gnm.tbl$GenBank_ID[1], "_", gnm.tbl$GID.tag[1], ".faa"))) %>% 
+readFasta(file.path("faa", str_c(gnm.tbl$GenBank_ID[1], "_", gnm.tbl$genome_id[1], ".faa"))) %>% 
   head()
 ```
 
@@ -201,11 +196,11 @@ The idea is to use BLAST to align all proteins against all proteins, and from th
 
 ``` r
 dir.create("blast")
-faa.files <- list.files("faa", pattern = "\\.faa$") # assuming no other faa-files in this folder
-blastpAllAll(file.path("faa", faa.files), out.folder = "blast", verbose = F)
+faa.files <- list.files("faa", pattern = "\\.faa$", full.names = T) # assuming no other faa-files in this folder
+blastpAllAll(faa.files, out.folder = "blast", verbose = F)
 ```
 
-This step is the most time consuming in such analyses, and setting `verbose = T` may be a good idea, to monitor the progress. You may also speed things up by using multiple threads (the `threads` argument) or by starting several R-sessions, and let each session run the same code. In the latter case you must use the `job` option, and give it a unique integer for each R session, i.e. if you run 3 sessions, you use `job=1`, `job=2` and `job=3` in the different sessions. Let them all write to the same `out.folder`, and they will not over-write each other.
+This step is the most time consuming in such analyses, and setting `verbose = T` may be a good idea, to monitor the progress. You may also speed things up by using multiple threads (the `threads` argument) or by starting several R-sessions, and let each session run the same code. In the latter case you must use the `job` option, and give it a unique integer for each R session, i.e. if you run 3 sessions, you use `job=1`, `job=2` and `job=3` in the different sessions. Let them all write to the same `out.folder`, and they will not over-write each other. If you runt several jobs it is also a good idea to start the BLASTing at different places down the list of fasta files, use the `start.at` option to set this. If you have 30 genomes, set `start.at=1` for `job=1`, `start.at=10` for `job=2`and `start.at=20` for `job=3`.
 
 Storing such results in files in a separate subfolder is a good idea. If you choose to add more genomes later, these results are already there, and will not be re-computed. Never put any other files into this folder! If you want to re-compute everything, delete the files in the `out.folder` first.
 
@@ -215,7 +210,7 @@ Distances by `bDist()`
 Based on the results from above we compute distances between all proteins. Actually, most proteins have no similarity at all, and we only compute those distances who are detectable by BLAST, i.e. produce a BLAST alignment.
 
 ``` r
-dst.tbl <- bDist(file.path("blast", list.files("blast", pattern = "txt$")))
+dst.tbl <- bDist(list.files("blast", pattern = "txt$", full.names = T))
 ```
 
     ## readBlastSelf:
@@ -249,7 +244,7 @@ We notice:
 -   Some pairs are identical, and most of these are self-alignments. All proteins are identical (`Distance` is 0.0) to themselves.
 -   Many distance are large, close to 1.0. We could have lowered the E-value threshold in `bDist()` to eliminate many of these right away.
 
-The distances below 0.75 are the ones we are most interested in. In order to cluster we need to set some distance threshold somewhere, and from this histogram a value of 0.75 seems like a good start. This is a rather large threshold, and we should be prepared to use a smaller value if this results in very few and very large clusters.
+The distances below 0.75 are the ones we are interested in this time. In order to cluster we need to set some distance threshold somewhere, and from this histogram a value of 0.75 seems like a good start. This is a rather large threshold, and we should be prepared to use a smaller value if this results in very few and very large clusters.
 
 For huge data sets
 ------------------
@@ -299,6 +294,77 @@ Let us try this:
 ``` r
 clst.blast <- bClust(dst.tbl, linkage = "complete", threshold = 0.75)
 ```
+
+    ## bClust:
+    ## ...constructing graph with 4542 sequences (nodes) and 21054 distances (edges)
+    ## ...found 669 single linkage clusters
+    ## ...found 65 incomplete clusters
+    ## 1 / 65 
+    2 / 65 
+    3 / 65 
+    4 / 65 
+    5 / 65 
+    6 / 65 
+    7 / 65 
+    8 / 65 
+    9 / 65 
+    10 / 65 
+    11 / 65 
+    12 / 65 
+    13 / 65 
+    14 / 65 
+    15 / 65 
+    16 / 65 
+    17 / 65 
+    18 / 65 
+    19 / 65 
+    20 / 65 
+    21 / 65 
+    22 / 65 
+    23 / 65 
+    24 / 65 
+    25 / 65 
+    26 / 65 
+    27 / 65 
+    28 / 65 
+    29 / 65 
+    30 / 65 
+    31 / 65 
+    32 / 65 
+    33 / 65 
+    34 / 65 
+    35 / 65 
+    36 / 65 
+    37 / 65 
+    38 / 65 
+    39 / 65 
+    40 / 65 
+    41 / 65 
+    42 / 65 
+    43 / 65 
+    44 / 65 
+    45 / 65 
+    46 / 65 
+    47 / 65 
+    48 / 65 
+    49 / 65 
+    50 / 65 
+    51 / 65 
+    52 / 65 
+    53 / 65 
+    54 / 65 
+    55 / 65 
+    56 / 65 
+    57 / 65 
+    58 / 65 
+    59 / 65 
+    60 / 65 
+    61 / 65 
+    62 / 65 
+    63 / 65 
+    64 / 65 
+    65 / 65 
+    ...ended with 746 clusters, largest cluster has 14 members
 
 This results in 746 gene families or clusters. The largest cluster has 14 members, which is not very large given we have 10 genomes, and all core gene families should have at least 10 members. If many of the largest clusters become huge compared to the number of genomes, the threshold is probably too liberal (too large).
 
@@ -463,6 +529,11 @@ Since the 'cloud-genes' tend to be of a less reliable nature (gene prediction er
 ``` r
 pm <- panmat.blast                                                 # make a copy
 rownames(pm) <- gnm.tbl$Name[match(rownames(pm), gnm.tbl$GID.tag)] # new rownames
+```
+
+    ## Warning: Unknown or uninitialised column: `GID.tag`.
+
+``` r
 weights <- geneWeights(pm, type = "shell")
 distManhattan(pm, weights = weights) %>% 
   hclust(method = "average") %>% 
