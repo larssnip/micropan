@@ -20,7 +20,7 @@ Compared to previous versions some functions have been moved to the \texttt{micr
 
 You will also find no casestudy document or plotting functions. However, if you locate the GitHub site for this package, you will find a tutorial with code making similar plots using \texttt{ggplot} or \texttt{ggdendro}. This is an example of using generic R tools instead of making functions for each special case.
 
-\subsection{Faster reading of BLASt results}
+\subsection{Faster reading of BLAST results}
 A major change in the 2.1 version is faster reading of the BLAST result files, see `?bDist` or the tutorial at GitHub mentioned above for more details. 
 
 
