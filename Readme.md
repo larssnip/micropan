@@ -2,21 +2,21 @@ A micropan tutorial
 ================
 Lars Snipen
 
-Installation and citation
-=========================
+# Installation and citation
 
-Install the package from CRAN (<https://cran.r-project.org/>) in the standard way, either by
+Install the package from CRAN (<https://cran.r-project.org/>) in the
+standard way, either by
 
 ``` r
 install.packages("micropan")
 ```
 
-or by using the Tools - Install Packages... menu in RStudio.
+or by using the Tools - Install Packages… menu in RStudio.
 
-If you use this package, please cite [this paper](https://www.ncbi.nlm.nih.gov/pubmed/25888166).
+If you use this package, please cite [this
+paper](https://www.ncbi.nlm.nih.gov/pubmed/25888166).
 
-Loading `micropan`
-==================
+# Loading `micropan`
 
 Let us start by loading the `micropan` package
 
@@ -24,7 +24,8 @@ Let us start by loading the `micropan` package
 library(micropan)
 ```
 
-In the code below we also make use of some other packages in some examples, let us also load these right away
+In the code below we also make use of some other packages in some
+examples, let us also load these right away
 
 ``` r
 library(tidyverse)  # for plotting etc
@@ -32,21 +33,37 @@ library(R.utils)    # for de-compressing files
 library(ggdendro)   # plotting dendrogram tree
 ```
 
-The genome data
-===============
+# The genome data
 
-Let us first have a look at how we can download public genome data. There are many approaches, this is just one of them.
+Let us first have a look at how we can download public genome data.
+There are many approaches, this is just one of them.
 
-First, make a folder for this tutorial, and set this as your working directory in R.
+First, make a folder for this tutorial, and set this as your working
+directory in R.
 
-Look up the [NCBI/Genome](https://www.ncbi.nlm.nih.gov/genome) database, and click our way to the [browsing of microbes](https://www.ncbi.nlm.nih.gov/genome/browse#!/prokaryotes/). Here we search for the species *Buchnera aphidicola*. This species has small genomes, making the computations in this tutorial fast. We download the table listing these genomes, and store it with the proper name `Buchnera_aphidicola.txt` into a subfolder named `rawdata/`.
+Look up the [NCBI/Genome](https://www.ncbi.nlm.nih.gov/genome) database,
+and click our way to the [browsing of
+microbes](https://www.ncbi.nlm.nih.gov/genome/browse#!/prokaryotes/).
+Here we search for the species *Buchnera aphidicola*. This species has
+small genomes, making the computations in this tutorial fast. We
+download the table listing these genomes, and store it with the proper
+name `Buchnera_aphidicola.txt` into a subfolder named `rawdata/`.
 
-[Here is a short video](https://mediasite.nmbu.no/Mediasite/Play/13424bec1e7a4a0e9146736830669c341d) on how to do this.
+[Here is a short
+video](https://mediasite.nmbu.no/Mediasite/Play/13424bec1e7a4a0e9146736830669c341d)
+on how to do this.
 
-The genome table
-----------------
+## The genome table
 
-Regardless of how you obtain the genome data, it is strongly reccomended you make a *genome table* where each row lists all relevant information about each genome in your pan-genome study. This table typically contains some name and other information for each genome, and the `genome_id` required. The latter is a unique genome identifier consisting of the text `"GID"` followed by an integer. Several of the functions in this package search for this information using the regular expression `"GID[0-9]+"`, which means you have to follow this exact pattern.
+Regardless of how you obtain the genome data, it is strongly reccomended
+you make a *genome table* where each row lists all relevant information
+about each genome in your pan-genome study. This table typically
+contains some name and other information for each genome, and the
+`genome_id` required. The latter is a unique genome identifier
+consisting of the text `"GID"` followed by an integer. Several of the
+functions in this package search for this information using the regular
+expression `"GID[0-9]+"`, which means you have to follow this exact
+pattern.
 
 Let us read the comma-separated table we downloaded into R and
 
@@ -63,16 +80,30 @@ suppressMessages(read_delim("rawdata/Buchnera_aphidicola.txt", delim = ",")) %>%
   slice(1:10) -> gnm.tbl
 ```
 
-In this case we keep the `Name`, `Strain`, `Level` and `GenBank_FTP` address for each genome. You may of course add all types of information about the genomes as columns to this table.
+In this case we keep the `Name`, `Strain`, `Level` and `GenBank_FTP`
+address for each genome. You may of course add all types of information
+about the genomes as columns to this table.
 
-The NCBI/GenBank genome FASTA files are currently stored according to a system that makes them accessible by using the URL address in the `GenBank_FTP` column only. The last term of this address is the name of the folder in which we find all GenBank data about the corresponding genome. The files in this folder typically have this as their prefix, and storing it as a separate column `GenBank_ID` makes later code somewhat shorter.
+The NCBI/GenBank genome FASTA files are currently stored according to a
+system that makes them accessible by using the URL address in the
+`GenBank_FTP` column only. The last term of this address is the name of
+the folder in which we find all GenBank data about the corresponding
+genome. The files in this folder typically have this as their prefix,
+and storing it as a separate column `GenBank_ID` makes later code
+somewhat shorter.
 
-At the time of writing this table contains 65 genomes. To make faster computations in this tutorial, we slice the table down to only the 10 first genomes. You may run with the full table if you like, but this will take (much) longer time.
+At the time of writing this table contains 65 genomes. To make faster
+computations in this tutorial, we slice the table down to only the 10
+first genomes. You may run with the full table if you like, but this
+will take (much) longer time.
 
-Downloading
------------
+## Downloading
 
-We are ready to start downloading, and here is some code to do the job. The genome filenames consists of the `GenBank_ID` and the suffix `_genomic.fna.gz`, at least at the time of writing. Note that we also immediately uncompress the files (using `gunzip()` from the `R.utils` package), since this will be a benefit later.
+We are ready to start downloading, and here is some code to do the job.
+The genome filenames consists of the `GenBank_ID` and the suffix
+`_genomic.fna.gz`, at least at the time of writing. Note that we also
+immediately uncompress the files (using `gunzip()` from the `R.utils`
+package), since this will be a benefit later.
 
 ``` r
 for(i in 1:nrow(gnm.tbl)){
@@ -83,19 +114,32 @@ for(i in 1:nrow(gnm.tbl)){
 }
 ```
 
-We could also have done this by using the accession numbers in the columns `Replicons` and `WGS` of the downloaded table, and the functions `entrezDownload()` and `getAccessions()` in this R package. They will download from the Nucleotide database, resulting in uncompressed FASTA files.
+We could also have done this by using the accession numbers in the
+columns `Replicons` and `WGS` of the downloaded table, and the functions
+`entrezDownload()` and `getAccessions()` in this R package. They will
+download from the Nucleotide database, resulting in uncompressed FASTA
+files.
 
-A note on compressed files: Below we make use of the software *prodigal* to find genes, and this cannot take compressed fasta files as input. For reading or writing files in R using `readFasta()` or `writeFasta()` you may very well work with compressed files.
+A note on compressed files: Below we make use of the software *prodigal*
+to find genes, and this cannot take compressed fasta files as input. For
+reading or writing files in R using `readFasta()` or `writeFasta()` you
+may very well work with compressed files.
 
-Finding coding genes
-====================
+# Finding coding genes
 
-A pan-genome analysis focuses on the coding genes from each genome. Finding these coding genes is a very crucial step for many downstream analyses. Prokaryotic gene finders will usually find most coding genes, but not perfectly. Let us first illustrate this.
+A pan-genome analysis focuses on the coding genes from each genome.
+Finding these coding genes is a very crucial step for many downstream
+analyses. Prokaryotic gene finders will usually find most coding genes,
+but not perfectly. Let us first illustrate this.
 
-Gene scores
------------
+## Gene scores
 
-We will use the function `findGenes()` from the `microseq` package for this job. This implements the [prodigal](https://github.com/hyattpd/Prodigal) gene finding software, which is very popular. Let us use as input a 'genome' consisting of 1 million basepairs of uniform random DNA. We make a subfolder `tmp/` for storing temporary files, and put this rubbish 'genome' into it
+We will use the function `findGenes()` from the `microseq` package for
+this job. This implements the
+[prodigal](https://github.com/hyattpd/Prodigal) gene finding software,
+which is very popular. Let us use as input a ‘genome’ consisting of 1
+million basepairs of uniform random DNA. We make a subfolder `tmp/` for
+storing temporary files, and put this rubbish ‘genome’ into it
 
 ``` r
 dir.create("tmp")
@@ -108,10 +152,16 @@ tibble(Header = "Random_noise",
 Then we do the gene finding from these data:
 
 ``` r
-gff.tbl <- findGenes("tmp/random.fna")
+gff.tbl <- readFasta("tmp/random.fna") %>% findGenes()
 ```
 
-The resulting GFF-table lists more than 1000 genes, even if the input is completely rubbish! It is quite typical of gene finding softwares that they tend to 'find genes' even if there are none. There are many good reasons for designing them over-sensitive like this, but for pan-genome studies it is not beneficial. However, this table also has a column `Score` given by [prodigal](https://github.com/hyattpd/Prodigal) to each of these 'genes'. A histogram of these scores shows
+The resulting GFF-table lists more than 1000 genes, even if the input is
+completely rubbish! It is quite typical of gene finding softwares that
+they tend to ‘find genes’ even if there are none. There are many good
+reasons for designing them over-sensitive like this, but for pan-genome
+studies it is not beneficial. However, this table also has a column
+`Score` given by [prodigal](https://github.com/hyattpd/Prodigal) to each
+of these ‘genes’. A histogram of these scores shows
 
 ``` r
 fig1 <- ggplot(gff.tbl) +
@@ -120,31 +170,37 @@ fig1 <- ggplot(gff.tbl) +
 print(fig1)
 ```
 
-![](Readme_files/figure-markdown_github/unnamed-chunk-9-1.png)
+![](Readme_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
 
-that the largest scores are just over 30, and none are above 40. If we use the same procedure on the first real genome
+that the largest scores are just over 30, and none are above 40. If we
+use the same procedure on the first real genome
 
 ``` r
-gff.tbl <- findGenes(file.path("rawdata", str_c(gnm.tbl$GenBank_ID[1], "_genomic.fna")))
+gff.tbl <- readFasta(file.path("rawdata", str_c(gnm.tbl$GenBank_ID[1], "_genomic.fna"))) %>% findGenes()
 fig2 <- ggplot(gff.tbl) +
   geom_histogram(aes(x = Score), bins = 50) +
   labs(title = "Real genome")
 print(fig2)
 ```
 
-![](Readme_files/figure-markdown_github/unnamed-chunk-10-1.png)
+![](Readme_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
 
-we notice that most genes have scores well above 40, but a few have a very low score, and may be discarded. Such low-scoring gene predictions are likely to be errors, and will affect some of our downstream analyses. These typically end up as *cloud genes* in the pan-genome, and will affect estimates on pan-genome size and openness severely.
+we notice that most genes have scores well above 40, but a few have a
+very low score, and may be discarded. Such low-scoring gene predictions
+are likely to be errors, and will affect some of our downstream
+analyses. These typically end up as *cloud genes* in the pan-genome, and
+will affect estimates on pan-genome size and openness severely.
 
-The proteins and `panPrep()`
-----------------------------
+## The proteins and `panPrep()`
 
-Let us use a cutoff of score 40, to discard the most uncertain gene predictions. We then extract the coding genes from the genome and translate them into protein, and store this into the `tmp/` folder:
+Let us use a cutoff of score 40, to discard the most uncertain gene
+predictions. We then extract the coding genes from the genome and
+translate them into protein, and store this into the `tmp/` folder:
 
 ``` r
 for(i in 1:nrow(gnm.tbl)){
   genome <- readFasta(file.path("rawdata", str_c(gnm.tbl$GenBank_ID[i], "_genomic.fna"))) # for use below
-  findGenes(file.path("rawdata", str_c(gnm.tbl$GenBank_ID[i], "_genomic.fna"))) %>% 
+  findGenes(genome) %>% 
     filter(Score > 40) %>% 
     gff2fasta(genome) %>% 
     mutate(Sequence = translate(Sequence)) %>% 
@@ -152,9 +208,13 @@ for(i in 1:nrow(gnm.tbl)){
 }
 ```
 
-Notice we change the filename extension to `.faa` once we have FASTA files with amino acid sequences.
+Notice we change the filename extension to `.faa` once we have FASTA
+files with amino acid sequences.
 
-Before we are done with this part, we need to *prepare* the files for later, using the `panPrep()` function. This is where we need the `GID.tag` information. We create a new subfolder for these prepped protein files:
+Before we are done with this part, we need to *prepare* the files for
+later, using the `panPrep()` function. This is where we need the
+`GID.tag` information. We create a new subfolder for these prepped
+protein files:
 
 ``` r
 dir.create("faa")
@@ -165,7 +225,10 @@ for(i in 1:nrow(gnm.tbl)){
 }
 ```
 
-Inspect the FASTA files in the `faa/` subfolder to verify they contain proper protein sequences, and that the `GID.tag` information has been added to each filename as well as to the first token of each `Header` in the FASTA files. Here is the top of the first file:
+Inspect the FASTA files in the `faa/` subfolder to verify they contain
+proper protein sequences, and that the `GID.tag` information has been
+added to each filename as well as to the first token of each `Header` in
+the FASTA files. Here is the top of the first file:
 
 ``` r
 readFasta(file.path("faa", str_c(gnm.tbl$GenBank_ID[1], "_", gnm.tbl$genome_id[1], ".faa"))) %>% 
@@ -173,26 +236,33 @@ readFasta(file.path("faa", str_c(gnm.tbl$GenBank_ID[1], "_", gnm.tbl$genome_id[1
 ```
 
     ## # A tibble: 6 x 2
-    ##   Header                           Sequence                                     
-    ##   <chr>                            <chr>                                        
-    ## 1 GID1_seq1 Seqid=AE013218.1;Star~ MSKSYLKNFDVIVIGGGHAGTEAAAASARVGCKTLLLTQKITDI~
-    ## 2 GID1_seq2 Seqid=AE013218.1;Star~ MSLEKISNPQKYISHHLNHLQIDLCNFKFVEPGKIVSHFWVLNI~
-    ## 3 GID1_seq3 Seqid=AE013218.1;Star~ MESLNVDMLYIAVAIMIGLAAIGAAIGIGILGSKFLEGAARQPD~
-    ## 4 GID1_seq4 Seqid=AE013218.1;Star~ MNLNATILGQALSFILFVWFCMKYIWPPIIFAIETRQKNIEESL~
-    ## 5 GID1_seq5 Seqid=AE013218.1;Star~ MSVLDTIARPYAKAIFELAIENQSIEKWKKTLIFINEIIRSKKI~
-    ## 6 GID1_seq6 Seqid=AE013218.1;Star~ MQLNSTEISQLIKERIAQFEVFNQSYNEGTIISVNDGIIKIYGL~
+    ##   Header                                                  Sequence              
+    ##   <chr>                                                   <chr>                 
+    ## 1 GID1_seq1 Seqid=AE013218.1;Start=1;End=1896;Strand=+    MSKSYLKNFDVIVIGGGHAGT~
+    ## 2 GID1_seq2 Seqid=AE013218.1;Start=2026;End=2844;Strand=+ MSLEKISNPQKYISHHLNHLQ~
+    ## 3 GID1_seq3 Seqid=AE013218.1;Start=2887;End=3126;Strand=+ MESLNVDMLYIAVAIMIGLAA~
+    ## 4 GID1_seq4 Seqid=AE013218.1;Start=3237;End=3728;Strand=+ MNLNATILGQALSFILFVWFC~
+    ## 5 GID1_seq5 Seqid=AE013218.1;Start=3740;End=4273;Strand=+ MSVLDTIARPYAKAIFELAIE~
+    ## 6 GID1_seq6 Seqid=AE013218.1;Start=4287;End=5819;Strand=+ MQLNSTEISQLIKERIAQFEV~
 
-Instead of having two loops as we did here (to make it very transparent) you could have added the `panPrep()` to the first loop to save some time and code.
+Instead of having two loops as we did here (to make it very transparent)
+you could have added the `panPrep()` to the first loop to save some time
+and code.
 
-Gene families using BLAST
-=========================
+# Gene families using BLAST
 
-Grouping genes/proteins into gene families is a central part of a pan-genome analysis. Clustering sequences means we need some measure of *distance* between them. Let us find gene families using BLAST.
+Grouping genes/proteins into gene families is a central part of a
+pan-genome analysis. Clustering sequences means we need some measure of
+*distance* between them. Let us find gene families using BLAST.
 
-The `blastpAllAll()`
---------------------
+## The `blastpAllAll()`
 
-The idea is to use BLAST to align all proteins against all proteins, and from this compute a distance between all pairs. Most proteins do *not* align, and only those who do have a similarity we take interest in. We make a new subfolder `blast/` and use the `blastpAllAll()` function to compare all proteins against all other proteins, writing the resulting files to this new folder:
+The idea is to use BLAST to align all proteins against all proteins, and
+from this compute a distance between all pairs. Most proteins do *not*
+align, and only those who do have a similarity we take interest in. We
+make a new subfolder `blast/` and use the `blastpAllAll()` function to
+compare all proteins against all other proteins, writing the resulting
+files to this new folder:
 
 ``` r
 dir.create("blast")
@@ -200,14 +270,31 @@ faa.files <- list.files("faa", pattern = "\\.faa$", full.names = T) # assuming n
 blastpAllAll(faa.files, out.folder = "blast", verbose = F)
 ```
 
-This step is the most time consuming in such analyses, and setting `verbose = T` may be a good idea, to monitor the progress. You may also speed things up by using multiple threads (the `threads` argument) or by starting several R-sessions, and let each session run the same code. In the latter case you must use the `job` option, and give it a unique integer for each R session, i.e. if you run 3 sessions, you use `job=1`, `job=2` and `job=3` in the different sessions. Let them all write to the same `out.folder`, and they will not over-write each other. If you runt several jobs it is also a good idea to start the BLASTing at different places down the list of fasta files, use the `start.at` option to set this. If you have 30 genomes, set `start.at=1` for `job=1`, `start.at=10` for `job=2`and `start.at=20` for `job=3`.
+This step is the most time consuming in such analyses, and setting
+`verbose = T` may be a good idea, to monitor the progress. You may also
+speed things up by using multiple threads (the `threads` argument) or by
+starting several R-sessions, and let each session run the same code. In
+the latter case you must use the `job` option, and give it a unique
+integer for each R session, i.e. if you run 3 sessions, you use `job=1`,
+`job=2` and `job=3` in the different sessions. Let them all write to the
+same `out.folder`, and they will not over-write each other. If you runt
+several jobs it is also a good idea to start the BLASTing at different
+places down the list of fasta files, use the `start.at` option to set
+this. If you have 30 genomes, set `start.at=1` for `job=1`,
+`start.at=10` for `job=2`and `start.at=20` for `job=3`.
 
-Storing such results in files in a separate subfolder is a good idea. If you choose to add more genomes later, these results are already there, and will not be re-computed. Never put any other files into this folder! If you want to re-compute everything, delete the files in the `out.folder` first.
+Storing such results in files in a separate subfolder is a good idea. If
+you choose to add more genomes later, these results are already there,
+and will not be re-computed. Never put any other files into this folder!
+If you want to re-compute everything, delete the files in the
+`out.folder` first.
 
-Distances by `bDist()`
-----------------------
+## Distances by `bDist()`
 
-Based on the results from above we compute distances between all proteins. Actually, most proteins have no similarity at all, and we only compute those distances who are detectable by BLAST, i.e. produce a BLAST alignment.
+Based on the results from above we compute distances between all
+proteins. Actually, most proteins have no similarity at all, and we only
+compute those distances who are detectable by BLAST, i.e. produce a
+BLAST alignment.
 
 ``` r
 dst.tbl <- bDist(list.files("blast", pattern = "txt$", full.names = T))
@@ -225,11 +312,19 @@ dst.tbl <- bDist(list.files("blast", pattern = "txt$", full.names = T))
     ##    ...found 47803 alignments...
     ##    ...where 4542 are self-alignments...
 
-Notice how we use *all* result files in the `blast/` subfolder as input here. Thus, you need this set of results to be complete, and there should be no other files in this folder. Make several folders if you want to have results for various collections of genomes!
+Notice how we use *all* result files in the `blast/` subfolder as input
+here. Thus, you need this set of results to be complete, and there
+should be no other files in this folder. Make several folders if you
+want to have results for various collections of genomes!
 
-The resulting table has four columns. The two first (`Query`and `Hit`) lists sequence tags, i.e. each row is a protein pair. The third column is the alignment `Bitscore` and the last column is the `Distance` we are interested in. All pairs *not* listed have distance 1.0 between them, i.e. share no detectable similarity at all.
+The resulting table has four columns. The two first (`Query`and `Hit`)
+lists sequence tags, i.e. each row is a protein pair. The third column
+is the alignment `Bitscore` and the last column is the `Distance` we are
+interested in. All pairs *not* listed have distance 1.0 between them,
+i.e. share no detectable similarity at all.
 
-We may plot a histogram of these distances, to get a picture of how similar the proteins tend to be
+We may plot a histogram of these distances, to get a picture of how
+similar the proteins tend to be
 
 ``` r
 fig3 <- ggplot(dst.tbl) +
@@ -237,19 +332,33 @@ fig3 <- ggplot(dst.tbl) +
 print(fig3)
 ```
 
-![](Readme_files/figure-markdown_github/unnamed-chunk-16-1.png)
+![](Readme_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
 
 We notice:
 
--   Some pairs are identical, and most of these are self-alignments. All proteins are identical (`Distance` is 0.0) to themselves.
--   Many distance are large, close to 1.0. We could have lowered the E-value threshold in `bDist()` to eliminate many of these right away.
+-   Some pairs are identical, and most of these are self-alignments. All
+    proteins are identical (`Distance` is 0.0) to themselves.
+-   Many distance are large, close to 1.0. We could have lowered the
+    E-value threshold in `bDist()` to eliminate many of these right
+    away.
 
-The distances below 0.75 are the ones we are interested in this time. In order to cluster we need to set some distance threshold somewhere, and from this histogram a value of 0.75 seems like a good start. This is a rather large threshold, and we should be prepared to use a smaller value if this results in very few and very large clusters.
+The distances below 0.75 are the ones we are interested in this time. In
+order to cluster we need to set some distance threshold somewhere, and
+from this histogram a value of 0.75 seems like a good start. This is a
+rather large threshold, and we should be prepared to use a smaller value
+if this results in very few and very large clusters.
 
-For huge data sets
-------------------
+## For huge data sets
 
-If you have many genomes, say more than 100, you may find the reading of the files takes quite some time. Then you may do this in a separate step, using `readBlastSelf()` and `readBlastPair()` and save their results to some `.RData` files. This means you can read chunks of files and perhaps run it in parallell. These functions will return tables of BLAST results that you bind together into one long table and use as input to `bDist()` instead of the filenames, using the argument `blast.tbl` instead of `blast.files` in `bDist()`. Here is how we may do it, using the small example:
+If you have many genomes, say more than 100, you may find the reading of
+the files takes quite some time. Then you may do this in a separate
+step, using `readBlastSelf()` and `readBlastPair()` and save their
+results to some `.RData` files. This means you can read chunks of files
+and perhaps run it in parallell. These functions will return tables of
+BLAST results that you bind together into one long table and use as
+input to `bDist()` instead of the filenames, using the argument
+`blast.tbl` instead of `blast.files` in `bDist()`. Here is how we may do
+it, using the small example:
 
 ``` r
 self.tbl <- readBlastSelf(file.path("blast", list.files("blast", pattern = "txt$")))
@@ -277,17 +386,26 @@ dst.tbl <- bDist(blast.tbl = bind_rows(self.tbl, pair.tbl))
     ##    ...found 47803 alignments...
     ##    ...where 4542 are self-alignments...
 
-The `self.tbl` is never super-big, but the `pair.tbl` may have many million rows. Instead of giving it all files to read, it may be possible to speed things up by processing many chunks in parallell. Still, the `bDist()` will need all rows in the end and you may run out of memory if the number of genomes is too large.
+The `self.tbl` is never super-big, but the `pair.tbl` may have many
+million rows. Instead of giving it all files to read, it may be possible
+to speed things up by processing many chunks in parallell. Still, the
+`bDist()` will need all rows in the end and you may run out of memory if
+the number of genomes is too large.
 
-Clustering by `bClust`
-----------------------
+## Clustering by `bClust`
 
-The `bClust()` uses classical hierarchical clustering based on the distances we computed above. We can specify the `linkage` function to use. The `complete` linkage is the 'strictest' way of clustering, in the sense that no distance between two members can exceed the threshold we specify. It is often a good choice to use
+The `bClust()` uses classical hierarchical clustering based on the
+distances we computed above. We can specify the `linkage` function to
+use. The `complete` linkage is the ‘strictest’ way of clustering, in the
+sense that no distance between two members can exceed the threshold we
+specify. It is often a good choice to use
 
 -   A `complete` linkage clustering
 -   And a rather libral (large) threshold
 
-The `complete`linkage means we have exact control of the 'radius' of our clusters ore gene families. The other linkages are less transparent in this sense.
+The `complete`linkage means we have exact control of the ‘radius’ of our
+clusters ore gene families. The other linkages are less transparent in
+this sense.
 
 Let us try this:
 
@@ -299,76 +417,17 @@ clst.blast <- bClust(dst.tbl, linkage = "complete", threshold = 0.75)
     ## ...constructing graph with 4542 sequences (nodes) and 21054 distances (edges)
     ## ...found 669 single linkage clusters
     ## ...found 65 incomplete clusters
-    ## 1 / 65 
-    2 / 65 
-    3 / 65 
-    4 / 65 
-    5 / 65 
-    6 / 65 
-    7 / 65 
-    8 / 65 
-    9 / 65 
-    10 / 65 
-    11 / 65 
-    12 / 65 
-    13 / 65 
-    14 / 65 
-    15 / 65 
-    16 / 65 
-    17 / 65 
-    18 / 65 
-    19 / 65 
-    20 / 65 
-    21 / 65 
-    22 / 65 
-    23 / 65 
-    24 / 65 
-    25 / 65 
-    26 / 65 
-    27 / 65 
-    28 / 65 
-    29 / 65 
-    30 / 65 
-    31 / 65 
-    32 / 65 
-    33 / 65 
-    34 / 65 
-    35 / 65 
-    36 / 65 
-    37 / 65 
-    38 / 65 
-    39 / 65 
-    40 / 65 
-    41 / 65 
-    42 / 65 
-    43 / 65 
-    44 / 65 
-    45 / 65 
-    46 / 65 
-    47 / 65 
-    48 / 65 
-    49 / 65 
-    50 / 65 
-    51 / 65 
-    52 / 65 
-    53 / 65 
-    54 / 65 
-    55 / 65 
-    56 / 65 
-    57 / 65 
-    58 / 65 
-    59 / 65 
-    60 / 65 
-    61 / 65 
-    62 / 65 
-    63 / 65 
-    64 / 65 
-    65 / 65 
-    ...ended with 746 clusters, largest cluster has 14 members
+    ## 1 / 65 2 / 65 3 / 65 4 / 65 5 / 65 6 / 65 7 / 65 8 / 65 9 / 65 10 / 65 11 / 65 12 / 65 13 / 65 14 / 65 15 / 65 16 / 65 17 / 65 18 / 65 19 / 65 20 / 65 21 / 65 22 / 65 23 / 65 24 / 65 25 / 65 26 / 65 27 / 65 28 / 65 29 / 65 30 / 65 31 / 65 32 / 65 33 / 65 34 / 65 35 / 65 36 / 65 37 / 65 38 / 65 39 / 65 40 / 65 41 / 65 42 / 65 43 / 65 44 / 65 45 / 65 46 / 65 47 / 65 48 / 65 49 / 65 50 / 65 51 / 65 52 / 65 53 / 65 54 / 65 55 / 65 56 / 65 57 / 65 58 / 65 59 / 65 60 / 65 61 / 65 62 / 65 63 / 65 64 / 65 65 / 65 ...ended with 746 clusters, largest cluster has 14 members
 
-This results in 746 gene families or clusters. The largest cluster has 14 members, which is not very large given we have 10 genomes, and all core gene families should have at least 10 members. If many of the largest clusters become huge compared to the number of genomes, the threshold is probably too liberal (too large).
+This results in 746 gene families or clusters. The largest cluster has
+14 members, which is not very large given we have 10 genomes, and all
+core gene families should have at least 10 members. If many of the
+largest clusters become huge compared to the number of genomes, the
+threshold is probably too liberal (too large).
 
-Note that the clustering vector `clst.blast` contains, in its names, the unique information to identify a protein and the genome from which it comes. Let us briefly have a look at which proteins belong to cluster 1:
+Note that the clustering vector `clst.blast` contains, in its names, the
+unique information to identify a protein and the genome from which it
+comes. Let us briefly have a look at which proteins belong to cluster 1:
 
 ``` r
 print(clst.blast[clst.blast == 1])
@@ -379,18 +438,22 @@ print(clst.blast[clst.blast == 1])
     ##  GID7_seq1  GID8_seq1  GID9_seq1 
     ##          1          1          1
 
-We notice this cluster has exactly one member from each genome (all 10 `GID.tag`s), a 'perfect' core gene.
+We notice this cluster has exactly one member from each genome (all 10
+`GID.tag`s), a ‘perfect’ core gene.
 
-The pan-matrix
-==============
+# The pan-matrix
 
-The fundamental data structure for many pan-genome analyses is the pan-matrix. This is simply a matrix with one row for each genome and one column for each gene cluster. The only input required is the clustering vector from above:
+The fundamental data structure for many pan-genome analyses is the
+pan-matrix. This is simply a matrix with one row for each genome and one
+column for each gene cluster. The only input required is the clustering
+vector from above:
 
 ``` r
 panmat.blast <- panMatrix(clst.blast)
 ```
 
-Once we have the pan-matrix, we can make a bar-chart over how many clusters are found in 1,2,...,all genomes:
+Once we have the pan-matrix, we can make a bar-chart over how many
+clusters are found in 1,2,…,all genomes:
 
 ``` r
 tibble(Clusters = as.integer(table(factor(colSums(panmat.blast > 0),
@@ -400,12 +463,16 @@ tibble(Clusters = as.integer(table(factor(colSums(panmat.blast > 0),
   geom_col() + labs(title = "Number of clusters found in 1, 2,...,all genomes")
 ```
 
-![](Readme_files/figure-markdown_github/unnamed-chunk-21-1.png)
+![](Readme_files/figure-gfm/unnamed-chunk-21-1.png)<!-- -->
 
-Pan-genome size
----------------
+## Pan-genome size
 
-How big is the pan-genome? We are not talking about the number of gene clusters in the current sample, because this is just the number of columns in the pan-matrix. The size of the pan-genome is the number of gene clusters we would see if we collected *all* genomes of the species, not just the current sample. Will the number of clusters grow forever, or will it level out?
+How big is the pan-genome? We are not talking about the number of gene
+clusters in the current sample, because this is just the number of
+columns in the pan-matrix. The size of the pan-genome is the number of
+gene clusters we would see if we collected *all* genomes of the species,
+not just the current sample. Will the number of clusters grow forever,
+or will it level out?
 
 The `heaps()` function gives some estimate of pan-genome openness:
 
@@ -413,7 +480,8 @@ The `heaps()` function gives some estimate of pan-genome openness:
 heaps.est <- heaps(panmat.blast, n.perm = 500)
 ```
 
-According to the theory the pan-genome is closed if the estimated `alpha` is above 1.0:
+According to the theory the pan-genome is closed if the estimated
+`alpha` is above 1.0:
 
 ``` r
 print(heaps.est)
@@ -422,9 +490,12 @@ print(heaps.est)
     ##  Intercept      alpha 
     ## 283.942276   1.479329
 
-which is the case here. This means the growth of new gene clusters as we sample more and more genomes tend to level off, see the Help-file for `heaps()` for more details.
+which is the case here. This means the growth of new gene clusters as we
+sample more and more genomes tend to level off, see the Help-file for
+`heaps()` for more details.
 
-So how big does it look like this pan-genome will be? The `chao()` shed some light on this:
+So how big does it look like this pan-genome will be? The `chao()` shed
+some light on this:
 
 ``` r
 print(chao(panmat.blast))
@@ -432,9 +503,12 @@ print(chao(panmat.blast))
 
     ## [1] 1143
 
-which is an estimate of the total number of gene clusters for this species. When based on only 10 genomes, this is a rather uncertain estimate!
+which is an estimate of the total number of gene clusters for this
+species. When based on only 10 genomes, this is a rather uncertain
+estimate!
 
-An alternative estimate is found by fitting binomial mixture models to the data:
+An alternative estimate is found by fitting binomial mixture models to
+the data:
 
 ``` r
 fitted <- binomixEstimate(panmat.blast, K.range = 3:8)
@@ -447,7 +521,8 @@ fitted <- binomixEstimate(panmat.blast, K.range = 3:8)
     ## binomixEstimate: Fitting 7 component model...
     ## binomixEstimate: Fitting 8 component model...
 
-By inspecting the fitted `BIC.tbl` we can see how many mixture components is supported best by these data:
+By inspecting the fitted `BIC.tbl` we can see how many mixture
+components is supported best by these data:
 
 ``` r
 print(fitted$BIC.tbl)
@@ -463,9 +538,13 @@ print(fitted$BIC.tbl)
     ## 5       7         0     1460 3212.
     ## 6       8         0     1310 3226.
 
-The minimum BIC-value is found at 4 components, indicating an optimum here. We also see that in this row the estimate of pan-genome size is 1160, and the size of the core-genome is 97.
+The minimum BIC-value is found at 4 components, indicating an optimum
+here. We also see that in this row the estimate of pan-genome size is
+1160, and the size of the core-genome is 97.
 
-The 4 components means we can actually group gene clusters into 4 categories with respect to how frequent they tend to occur in the genomes. This may also be plotted:
+The 4 components means we can actually group gene clusters into 4
+categories with respect to how frequent they tend to occur in the
+genomes. This may also be plotted:
 
 ``` r
 ncomp <- 4
@@ -480,11 +559,20 @@ fig4 <- fitted$Mix.tbl %>%
 print(fig4)
 ```
 
-![](Readme_files/figure-markdown_github/unnamed-chunk-28-1.png)
+![](Readme_files/figure-gfm/unnamed-chunk-28-1.png)<!-- -->
 
-We see that roughly half the pan-genome consists of the pink 'cloud-genes' with very low detection probability, i.e. gene clusters seen in very few genomes only. Also, in addition to the core-genes always observed, there is a component of almost-core-genes, seen in almost all genomes. Note that in `binomixEstimate()` you may set the `core.detection.prob` (slightly) lower than 1.0 to allow core-genes to be absent from some genomes. This is reasonable if we have incomplete genomes, genes may be there but is not detected due to incomplete sequence data.
+We see that roughly half the pan-genome consists of the pink
+‘cloud-genes’ with very low detection probability, i.e. gene clusters
+seen in very few genomes only. Also, in addition to the core-genes
+always observed, there is a component of almost-core-genes, seen in
+almost all genomes. Note that in `binomixEstimate()` you may set the
+`core.detection.prob` (slightly) lower than 1.0 to allow core-genes to
+be absent from some genomes. This is reasonable if we have incomplete
+genomes, genes may be there but is not detected due to incomplete
+sequence data.
 
-The figure above is for the entire pan-genome, but how does it look like in one (average) genome? Like this:
+The figure above is for the entire pan-genome, but how does it look like
+in one (average) genome? Like this:
 
 ``` r
 fig5 <- fitted$Mix.tbl %>% 
@@ -499,12 +587,11 @@ fig5 <- fitted$Mix.tbl %>%
 print(fig5)
 ```
 
-![](Readme_files/figure-markdown_github/unnamed-chunk-29-1.png)
+![](Readme_files/figure-gfm/unnamed-chunk-29-1.png)<!-- -->
 
-As extected, in a single genome the 'cloud-genes' (pink) are rare.
+As extected, in a single genome the ‘cloud-genes’ (pink) are rare.
 
-Relation between genomes
-------------------------
+## Relation between genomes
 
 From the pan-matrix we may also compute distances between genomes:
 
@@ -520,11 +607,20 @@ ggdendrogram(dendro_data(hclust(d.man, method = "average")),
   labs(x = "Genomes", y = "Manhattan distance", title = "Pan-genome dendrogram")
 ```
 
-![](Readme_files/figure-markdown_github/unnamed-chunk-31-1.png)
+![](Readme_files/figure-gfm/unnamed-chunk-31-1.png)<!-- -->
 
-The Manhattan distance is simply how many gene clusters have differing presence/absence status between two genomes, but remember the distances displayed in the tree are average linkage distances between clusters. Change the linkage by changing `method = "average"` in the call to `hclust()`.
+The Manhattan distance is simply how many gene clusters have differing
+presence/absence status between two genomes, but remember the distances
+displayed in the tree are average linkage distances between clusters.
+Change the linkage by changing `method = "average"` in the call to
+`hclust()`.
 
-Since the 'cloud-genes' tend to be of a less reliable nature (gene prediction errors), it may be a good idea to *weight* the distance such that differences in the 'shell-genes' (green sectors above) presence/absence becomes more important. Here is how we can do this, and at the same time we also replace the `GID.tag` labels by their corresponding `Name`:
+Since the ‘cloud-genes’ tend to be of a less reliable nature (gene
+prediction errors), it may be a good idea to *weight* the distance such
+that differences in the ‘shell-genes’ (green sectors above)
+presence/absence becomes more important. Here is how we can do this, and
+at the same time we also replace the `GID.tag` labels by their
+corresponding `Name`:
 
 ``` r
 pm <- panmat.blast                                                 # make a copy
@@ -542,21 +638,33 @@ distManhattan(pm, weights = weights) %>%
   labs(x = "Genomes", y = "Weighted Manhattan distance", title = "Pan-genome dendrogram")
 ```
 
-![](Readme_files/figure-markdown_github/unnamed-chunk-32-1.png)
+![](Readme_files/figure-gfm/unnamed-chunk-32-1.png)<!-- -->
 
-There are of course many variations of this dendrogram, by using other distances, different weighting etc.
+There are of course many variations of this dendrogram, by using other
+distances, different weighting etc.
 
-Grouping proteins by domains
-============================
+# Grouping proteins by domains
 
-An alternative to the BLAST procedure above is to search all proteins for *domains* and group them by which sequence of domains they contain. The advantage is that we do not need to decide any thresholds, and the approach is robust to gene prediction errors, since rubbish genes tend not to contain any domains. The problem compared to the BLAST approach is lower resolution, and that not all proteins are grouped.
+An alternative to the BLAST procedure above is to search all proteins
+for *domains* and group them by which sequence of domains they contain.
+The advantage is that we do not need to decide any thresholds, and the
+approach is robust to gene prediction errors, since rubbish genes tend
+not to contain any domains. The problem compared to the BLAST approach
+is lower resolution, and that not all proteins are grouped.
 
-The `hmmerScan()`
------------------
+## The `hmmerScan()`
 
-The [HMMER software](http://hmmer.org/) is needed here. This is only built for UNIX-like systems, but there are some possibilities of running it under windows as well, see [its documentation](http://hmmer.org/documentation.html). We also need a domain database to scan against, and the natural choice is the [Pfam-A database](https://pfam.xfam.org/). Any database based on the HMMER software is useful.
+The [HMMER software](http://hmmer.org/) is needed here. This is only
+built for UNIX-like systems, but there are some possibilities of running
+it under windows as well, see [its
+documentation](http://hmmer.org/documentation.html). We also need a
+domain database to scan against, and the natural choice is the [Pfam-A
+database](https://pfam.xfam.org/). Any database based on the HMMER
+software is useful.
 
-We assume you have downloaded and unpacked the `Pfam-A.hmm` file, stored this in some folder and run `hmmpress` on it. We use the `hmmerScan()` function to do the search:
+We assume you have downloaded and unpacked the `Pfam-A.hmm` file, stored
+this in some folder and run `hmmpress` on it. We use the `hmmerScan()`
+function to do the search:
 
 ``` r
 pfam.db <- "~/projects/publicdata/Pfam/Pfam-A.hmm"
@@ -566,14 +674,21 @@ hmmerScan(file.path("faa", str_c(gnm.tbl$GenBank_ID, "_", gnm.tbl$GID.tag, ".faa
           out.folder = "pfam")
 ```
 
-Note that the content of `pfam.db` in the code above needs to be edited to match where you have this database on your system.
+Note that the content of `pfam.db` in the code above needs to be edited
+to match where you have this database on your system.
 
-Just like BLASTing, this is a time consuming step, and results are stored in the subfolder `pfam/` for later. If you add more genome later, you simply re-run this code, and the existing result files will not be re-computed.
+Just like BLASTing, this is a time consuming step, and results are
+stored in the subfolder `pfam/` for later. If you add more genome later,
+you simply re-run this code, and the existing result files will not be
+re-computed.
 
-Domain sequence clustering
---------------------------
+## Domain sequence clustering
 
-First we read all results from the step above, i.e. the Pfam-A domains found in all proteins. We also use the `hmmerCleanOverlap()` to discard overlapping domains. In some cases two or more domains match the same region of the protein. In such cases we only keep the best matching domain.
+First we read all results from the step above, i.e. the Pfam-A domains
+found in all proteins. We also use the `hmmerCleanOverlap()` to discard
+overlapping domains. In some cases two or more domains match the same
+region of the protein. In such cases we only keep the best matching
+domain.
 
 ``` r
 pfam.files <- list.files("pfam", pattern = "txt$")
@@ -585,15 +700,20 @@ for(i in 1:length(pfam.files)){
 }
 ```
 
-The full table has 7403 rows, which is the number of times a protein has a hit against a domain. Many proteins have several domain hits. The *domain sequence* of a protein is the ordered sequence of domains appearing in it.
+The full table has 7403 rows, which is the number of times a protein has
+a hit against a domain. Many proteins have several domain hits. The
+*domain sequence* of a protein is the ordered sequence of domains
+appearing in it.
 
-We cluster the proteins based on their domain sequences. Only proteins having identical domain sequences are in the same cluster:
+We cluster the proteins based on their domain sequences. Only proteins
+having identical domain sequences are in the same cluster:
 
 ``` r
 clst.pfam <- dClust(hmmer.tbl)
 ```
 
-The number of clusters is simply the number of unique values in `clst.pfam`
+The number of clusters is simply the number of unique values in
+`clst.pfam`
 
 ``` r
 length(unique(clst.pfam))
@@ -601,4 +721,60 @@ length(unique(clst.pfam))
 
     ## [1] 669
 
-Replace the `clst.blast` by this `clst.pfam`, and all examples above may be repeated.
+Replace the `clst.blast` by this `clst.pfam`, and all examples above may
+be repeated.
+
+# Extracting genes
+
+In some cases we would like to study in more detail the actual genes who
+are present in 1,2,…, etc genomes, e.g. the core genes who are present
+in all genomes. The function `extractPanGenes()` extracts genes found in
+a specified number of genomes. Let us extract the genes found in 9 or 10
+genomes based on the BLAST clustering from above:
+
+``` r
+core.tbl <- extractPanGenes(clst.blast, N.genomes = 9:10)
+```
+
+This produces a table with 3 columns, listing these genes.
+
+We can write the gene families to separate fasta files using the
+`geneFamilies2fasta()` function. Let us put these into a new folder
+named \`core\_fam’:
+
+``` r
+dir.create("core_fam")
+geneFamilies2fasta(core.tbl, fasta.folder = "faa", out.folder = "core_fam")
+```
+
+    ## clusters2fasta:
+    ##    found 10 fasta files...
+    ##    writing 260 clusters to files...
+
+This will create a fasta file for each gene family, and the filenames
+contain the gene family (=cluster) and how many genomes it occured in.
+
+It is super simple to add the sequences yourself to a table like
+`core.tbl`. The `seq_tag` column has the text that uniquely defines each
+sequences in this study. By the following few code lines we read all
+proteins, and add only those listed in the table:
+
+``` r
+lapply(list.files("faa", full.names = T), readFasta) %>% 
+  bind_rows() %>% 
+  mutate(seq_tag = word(Header, 1, 1)) %>% 
+  right_join(core.tbl, by = "seq_tag") -> core.seq.tbl
+```
+
+Notice how we use `lapply()` and `readFasta()` to read all fasta files
+in one go, and then `bind_rows()` to make this into one big table. This
+is possible since `readFasta()` returns fasta file content as a table.
+Then we create a `seq_tag` column by using the *first* token in the
+fasta `Header`, which is always the sequence tag if your files have been
+prepared by `panPrep()`.
+
+Since the resulting table (`core.tbl`) has a `Header`and `Sequence`
+column, you may write it to a fasta file directly, using `writeFasta()`.
+If you use `core.seq.tbl` as argument to `geneFamilies2fasta` the
+`fasta.folder` argument is ignored, and the already existing sequences
+are used instead.

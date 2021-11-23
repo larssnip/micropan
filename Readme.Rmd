@@ -112,7 +112,7 @@ tibble(Header = "Random_noise",
 ```
 Then we do the gene finding from these data:
 ```{r, warning=TRUE}
-gff.tbl <- findGenes("tmp/random.fna")
+gff.tbl <- readFasta("tmp/random.fna") %>% findGenes()
 ```
 The resulting GFF-table lists more than 1000 genes, even if the input is completely rubbish! It is quite typical of gene finding softwares that they tend to 'find genes' even if there are none. There are many good reasons for designing them over-sensitive like this, but for pan-genome studies it is not beneficial. However, this table also has a column `Score` given by [prodigal](https://github.com/hyattpd/Prodigal) to each of these 'genes'. A histogram of these scores shows
 ```{r}
@@ -124,7 +124,7 @@ print(fig1)
 
 that the largest scores are just over 30, and none are above 40. If we use the same procedure on the first real genome
 ```{r}
-gff.tbl <- findGenes(file.path("rawdata", str_c(gnm.tbl$GenBank_ID[1], "_genomic.fna")))
+gff.tbl <- readFasta(file.path("rawdata", str_c(gnm.tbl$GenBank_ID[1], "_genomic.fna"))) %>% findGenes()
 fig2 <- ggplot(gff.tbl) +
   geom_histogram(aes(x = Score), bins = 50) +
   labs(title = "Real genome")
@@ -140,7 +140,7 @@ Let us use a cutoff of score 40, to discard the most uncertain gene predictions.
 ```{r, eval=FALSE}
 for(i in 1:nrow(gnm.tbl)){
   genome <- readFasta(file.path("rawdata", str_c(gnm.tbl$GenBank_ID[i], "_genomic.fna"))) # for use below
-  findGenes(file.path("rawdata", str_c(gnm.tbl$GenBank_ID[i], "_genomic.fna"))) %>% 
+  findGenes(genome) %>% 
     filter(Score > 40) %>% 
     gff2fasta(genome) %>% 
     mutate(Sequence = translate(Sequence)) %>% 
@@ -400,4 +400,33 @@ length(unique(clst.pfam))
 ```
 
 Replace the `clst.blast` by this `clst.pfam`, and all examples above may be repeated.
+
+
+
+# Extracting genes
+In some cases we would like to study in more detail the actual genes who are present in 1,2,..., etc genomes, e.g. the core genes who are present in all genomes. The function `extractPanGenes()` extracts genes found in a specified number of genomes. Let us extract the genes found in 9 or 10 genomes based on the BLAST clustering from above:
+```{r}
+core.tbl <- extractPanGenes(clst.blast, N.genomes = 9:10)
+```
+This produces a table with 3 columns, listing these genes. 
+
+We can write the gene families to separate fasta files using the `geneFamilies2fasta()` function. Let us put these into a new folder named `core_fam':
+```{r, warning=FALSE}
+dir.create("core_fam")
+geneFamilies2fasta(core.tbl, fasta.folder = "faa", out.folder = "core_fam")
+```
+This will create a fasta file for each gene family, and the filenames contain the gene family (=cluster) and how many genomes it occured in.
+
+It is super simple to add the sequences yourself to a table like `core.tbl`. The `seq_tag` column has the text that uniquely defines each sequences in this study. By the following few code lines we read all proteins, and add only those listed in the table:
+```{r}
+lapply(list.files("faa", full.names = T), readFasta) %>% 
+  bind_rows() %>% 
+  mutate(seq_tag = word(Header, 1, 1)) %>% 
+  right_join(core.tbl, by = "seq_tag") -> core.seq.tbl
+```
+Notice how we use `lapply()` and `readFasta()` to read all fasta files in one go, and then `bind_rows()` to make this into one big table. This is possible since `readFasta()` returns fasta file content as a table. Then we create a `seq_tag` column by using the *first* token in the fasta `Header`, which is always the sequence tag if your files have been prepared by `panPrep()`.
+
+Since the resulting table (`core.tbl`) has a `Header`and `Sequence` column, you may write it to a fasta file directly, using `writeFasta()`. If you use `core.seq.tbl` as argument to `geneFamilies2fasta` the `fasta.folder` argument is ignored, and the already existing sequences are used instead.
+
+
 
