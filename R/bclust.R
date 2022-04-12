@@ -124,7 +124,7 @@ bClust <- function(dist.tbl, linkage = "complete", threshold = 0.75, verbose = T
   }
   clustering <- as.integer(factor(cls.tbl$cluster))  # to get values 1,2,3,...
   names(clustering) <- cls.tbl$tag
-  if(verbose) cat("...ended with", length(unique(clustering)),
+  if(verbose) cat("\n...ended with", length(unique(clustering)),
                   "clusters, largest cluster has",
                   max(table(clustering)), "members\n")
   return(sort(clustering))

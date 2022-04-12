@@ -96,7 +96,8 @@
 #' @importFrom stringr str_extract str_c
 #' 
 #' @export blastpAllAll
-blastpAllAll <- function(prot.files, out.folder, e.value = 1, job = 1, threads = 1, start.at = 1, verbose = TRUE){
+blastpAllAll <- function(prot.files, out.folder, e.value = 1, job = 1,
+                         threads = 1, start.at = 1, verbose = TRUE){
   if(available.external("blast+")){
     N <- length(prot.files)
     genome_id <- str_extract(prot.files, "GID[0-9]+")
@@ -110,7 +111,7 @@ blastpAllAll <- function(prot.files, out.folder, e.value = 1, job = 1, threads =
     } else {
       outfmt <- "'6 qseqid sseqid evalue bitscore'"
     }
-    out.folder <- normalizePath(out.folder)
+    #out.folder <- normalizePath(out.folder)  # do NOT normalize this path!
     file.tbl <- data.frame(Dbase = rep("", (N^2 + N)/2),
                            Query = rep("", (N^2 + N)/2),
                            Res.file = rep("", (N^2 + N)/2),
@@ -133,7 +134,7 @@ blastpAllAll <- function(prot.files, out.folder, e.value = 1, job = 1, threads =
         log.fil <- file.path(out.folder, str_c("log", job, ".txt"))
         db.fil <- file.path(out.folder, str_c("blastDB", job))
         if(verbose) cat("blastpAllAll: Making BLAST database of", dbases[i], "\n")
-        system(paste("makeblastdb -logfile",log.fil, "-dbtype prot -out", db.fil, "-in", dbases[i]))
+        system(paste("makeblastdb -logfile", log.fil, "-dbtype prot -out", db.fil, "-in", dbases[i]))
         file.tbl %>% 
           filter(.data$Dbase == dbases[i]) -> tbl
         for(j in 1:nrow(tbl)){
